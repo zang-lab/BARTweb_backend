@@ -1,0 +1,10 @@
+hg38: # H3K27ac v2015: 1110 datasets; TF file v2018: 7968 datasets; UAC v2018: 4157285
+    H3K27ac_rp: /nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/human_2015_H3K27ac_rp.h5
+    # H3K27ac_RPKM: /nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/human_2015_H3K27ac_rpkm.h5
+    H3K27ac_RPKM: /nv/vol190/zanglab/wm9tr/data/marge_data/RPKM/human_H3K27ac_new_UAC_strength
+    TF_json: /nv/vol190/zanglab/wm9tr/test/test_bart_storage/human_UAC_file_str_format.json
+    overlap_json: /nv/vol190/zanglab/wm9tr/test/test_bart_storage/human_UAC_matrix_str_format.json
+    TSS_bed: /nv/vol190/zanglab/shared/genomes/hg38/hg38_unique_geneSymbol_TSS.bed
+    annotation_file: /nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/V2015_humanH3K27ac_Desc.csv
+    MSigDB_norm: /nv/vol190/zanglab/wm9tr/test/test_auc/MSigDB_hg38_old_samples_no_rep_UAC_2018TF.dat   # use only on rep from the MARGE samples
+    UAC_info: /nv/vol190/zanglab/wm9tr/data/marge_data/RPKM/hg38_splitted_udhs_equally.bed
