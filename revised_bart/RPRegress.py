@@ -1,10 +1,11 @@
-import zlib
+import warnings
+warnings.filterwarnings("ignore", category=FutureWarning)
+warnings.filterwarnings("ignore", category=DeprecationWarning)
+
 import argparse,math,os,sys,tables
 import numpy as np
-from operator import itemgetter, attrgetter, methodcaller
-from sklearn import linear_model, decomposition, datasets
-from sklearn.pipeline import Pipeline
-from sklearn.grid_search import GridSearchCV
+from operator import itemgetter
+from sklearn import linear_model
 from sklearn import cross_validation
 from sklearn import metrics
 #import regions
@@ -34,24 +35,26 @@ def gene_sym(symfile):
     # return {"refseq":["symbol","chr"]}
     fp = open(symfile)
     symdict = {} # {"gene_symbol": ["refseq_ID", "chr"]}  the first refseq ID in the TSS file
-    for line in fp:
-        sline = line.strip().split('\t')
-        symbol = sline[3]
-        chr_info = sline[0]
-        symdict[symbol] = chr_info
-        
+
+    # for gene symbol h5 as RP matrix
     # for line in fp:
-    #     f = line.strip().split('\t')
-    #     #print f
-    #     g = f[3]
-    #     IDs = g.split(':')
-    #     #print IDs
-    #     if IDs[1] not in symdict:
-    #         symdict[IDs[1]] = [IDs[0], f[0]]
+    #     sline = line.strip().split('\t')
+    #     symbol = sline[3]
+    #     chr_info = sline[0]
+    #     symdict[symbol] = chr_info
+        
+    for line in fp:
+        f = line.strip().split('\t')
+        #print f
+        g = f[3]
+        IDs = g.split(':')
+        #print IDs
+        if IDs[1] not in symdict:
+            symdict[IDs[1]] = [IDs[0], f[0]]
  
-    # rsymdict = {}
-    # for elem in symdict:
-    #     rsymdict[symdict[elem][0]] = [elem,symdict[elem][1]]
+    rsymdict = {}
+    for elem in symdict:
+        rsymdict[symdict[elem][0]] = [elem,symdict[elem][1]]
     fp.close()
 
     return symdict
@@ -194,7 +197,6 @@ def read_genelistOnly(sym, fname, index, gname2, sepby_chrom=True):
     for ag in allgenes:
         if gname2:
             try:
-                # added by @marvinquiet
                 # i = index[sym[ag][0]]
                 # if sym[ag][1] in train_chroms:
                 #     train_index.append(i)
@@ -251,20 +253,22 @@ def dataset_annotation(annotationf):
         if line.startswith('datasetID'):
             pass
         else:
-            # line = line.strip().split('\t')
-            # ID = line[0] # dataset id -> GSM id
-            # info = [line[4],line[5],line[7]] # CellLineName, Tissue/Organ, DetailedTissue
-            # try:
-            #     ann[ID] = info
-            # except:
-            #     ann[ID] = 'NA'
-            line = line.strip().split(',')
-            ID = line[1] # dataset id -> GSM id
-            info = [line[2],line[3],line[4]] # CellLineName, Tissue/Organ, DetailedTissue
+            line = line.strip().split('\t')
+            ID = line[0] # dataset id -> GSM id
+            info = [line[4],line[5],line[7]] # CellLineName, Tissue/Organ, DetailedTissue
             try:
                 ann[ID] = info
             except:
                 ann[ID] = 'NA'
+
+            # TODO: for GSMid annotation
+            # line = line.strip().split(',')
+            # ID = line[1] # dataset id -> GSM id
+            # info = [line[2],line[3],line[4]] # CellLineName, Tissue/Organ, DetailedTissue
+            # try:
+            #     ann[ID] = info
+            # except:
+            #     ann[ID] = 'NA'
     return ann
 
 
@@ -498,14 +502,14 @@ def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, 
 
     h5file = tables.open_file( rp_hdf5, driver="H5FD_CORE")
     #TODO: For testing the old GSM ids
-    # samplenames  = getSampleNames_hdf5(h5file)
+    samplenames  = getSampleNames_hdf5(h5file)
 
-    old_samplenames = '/nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/marge_bart_pipeline/human_366_only_one_rep_samples_GSMs.txt' # 352 unique GSM ids
+    # old_samplenames = '/nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/marge_bart_pipeline/human_366_only_one_rep_samples_GSMs.txt' # 352 unique GSM ids
     # old_samplenames = '/nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/marge_bart_pipeline/human_366_samples_GSMs.txt' # 445 GSM ids
-    samplenames = []
-    with open(old_samplenames, 'r') as fopen:
-        for line in fopen:
-            samplenames.append(line.strip())
+    # samplenames = []
+    # with open(old_samplenames, 'r') as fopen:
+    #     for line in fopen:
+    #         samplenames.append(line.strip())
 
     z   = readregpotfiles(sym,genome,samplenames,h5file)
     h5file.close()

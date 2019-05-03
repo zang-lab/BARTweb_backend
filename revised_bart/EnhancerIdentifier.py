@@ -1,6 +1,5 @@
 import argparse,math,numpy,os,sys,tables
 import time,re
-from sklearn import linear_model, decomposition, datasets, cluster, cross_validation, metrics
 import numpy as np
 
 # read in list
@@ -25,9 +24,7 @@ def read_sample_list(fname):
     for line in fp:
         line  = line.strip().split('\t')
         #print(line)
-        # if re.match('[0-9]',line[0]):
-        if re.match('GSM',line[0]): # match GSM id
-        #if not line[0].startswith('AUC'):
+        if re.match('[0-9]',line[0]):
             sl += [line[0]]
             scores += [float(line[1])]
     fp.close()
@@ -111,30 +108,24 @@ def get_H3K27ac_rpkm(sample_name, UAC_H3K27ac, idx=1):
     return dhs
 
 
-# def main(samplefile,genefile,casename,genome,RP_HDF5s,UDHS_H3K27ac_HDF5s,REF_SYM,tffile=None):
-# def main(samplefile,genefile,casename,genome,UDHS_H3K27ac_HDF5s,tffile=None):
 def main(samplefile,genefile,casename,genome,UAC_info, UAC_H3K27ac,tffile=None):  # UAC_info to extract chrom, start, end, ID; UAC_H3K27ac is a directory
 
-    fpo    = open(casename+'_enhancer_prediction_lasso.txt','w')
+    fpo = open(casename+'_enhancer_prediction_lasso.txt','w')
 
     sample_names,sample_weights = read_sample_list(samplefile)
-    # sample_names = [i for i in sample_names if re.match('[0-9]',i)] # incase 'start/end/chr' in sample names
-    sample_names = [i for i in sample_names if re.match('GSM',i)] # incase 'start/end/chr' in sample names
+    sample_names = [i for i in sample_names if re.match('[0-9]',i)] # incase 'start/end/chr' in sample names
+    # sample_names = [i for i in sample_names if re.match('GSM',i)] # incase 'start/end/chr' in sample names
     sample_weights = np.array(sample_weights)
     
-    # DHS_sample_names = [ '%s_Strength' % elem for elem in sample_names ]
-    DHS_sample_names = [ elem for elem in sample_names ]
+    DHS_sample_names = [ elem+'_Strength' for elem in sample_names ]
+    print(DHS_sample_names)
     #print(DHS_sample_names)
     # udhs_h5file = tables.open_file( UDHS_H3K27ac_HDF5s, driver="H5FD_CORE")    
-    # chrom = read_hdf5( udhs_h5file, ["chrom"] )
-    # start = read_hdf5( udhs_h5file, ["start"] )
-    # end = read_hdf5( udhs_h5file, ["end"] )
-    # # ID = read_hdf5( udhs_h5file, ["end"] )
-    # ID = read_hdf5( udhs_h5file, ["ID"] )
+    udhs_h5file = tables.open_file( UAC_H3K27ac, driver="H5FD_CORE")    
     DHS = None
     for dhs_samplename in DHS_sample_names:
-        # dhs = read_hdf5( udhs_h5file, [dhs_samplename] )
-        dhs = get_H3K27ac_rpkm(dhs_samplename, UAC_H3K27ac)
+        dhs = read_hdf5( udhs_h5file, [dhs_samplename] )
+        # dhs = get_H3K27ac_rpkm(dhs_samplename, UAC_H3K27ac)
         dhs = numpy.array(dhs)
         dhs = dhs.transpose()
         if DHS is None:
@@ -142,7 +133,7 @@ def main(samplefile,genefile,casename,genome,UAC_info, UAC_H3K27ac,tffile=None):
         else:
             DHS =  numpy.vstack((DHS,dhs))
 
-    # udhs_h5file.close()
+    udhs_h5file.close()
     DHS = DHS.transpose()
     # DHS = sqrttansform(DHS)
 

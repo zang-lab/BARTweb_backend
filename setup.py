@@ -10,32 +10,27 @@ under the terms of the BSD License.
 @author: Chongzhi Zang, Zhenjia Wang, Wenjing Ma
 @contact: zhenjia@virginia.edu, wm9tr@virginia.edu
 '''
-
-
-import os,sys
+import sys
 from setuptools import setup, find_packages
-from codecs import open
-from os import path
 import BART
 
 with open("README.rst", "rb") as f:
     long_descr = f.read().decode("utf-8")
-
 
 def main():
     if float(sys.version[:3])<3.0:
         sys.stderr.write("CRITICAL: Python version must be higher than or equal to 3.0!\n")
         sys.exit(1)
         
-    setup(name="BART",
+    setup(name="revised_BART",
           version=BART.__version__,
           description="Binding Analysis for Regulatory Transcription Factors of Genes - Revised version",
           long_description=long_descr,
           author='Zhanjia Wang, Wenjing Ma',
           author_email='zhenjia@virginia.edu, wm9tr@virginia.edu',
           url='https://github.com/marvinquiet/revised_BART',
-          # packages=find_packages(),#['BART'],
-          packages=['BART'],
+          packages=find_packages(exclude=['tests']),#['BART'],
+          # packages=['BART'],
           package_data={'':['bart.conf'],
                         'BART':['hg38_library/*.dat',
                                 'hg38_library/*.bed',
@@ -49,10 +44,7 @@ def main():
                                 'mm10_library/mm10_test_data/*'],},
           #data_files=[('.',['bart.conf'])],
           #include_package_data=True,
-          # scripts=['bin/bart',],
-          entry_points = {
-              "console_scripts": ['revised_bart = BART.bart:main']
-              },
+          scripts=['bin/revised_bart',],
           classifiers=[
               'Development Status :: 4 - Beta',
               'Environment :: Console',
@@ -66,10 +58,10 @@ def main():
           install_requires=[
               'argparse',
               'configparser',
-              'pyyaml',
               'numpy',
               'pandas',
               'scipy',
+              'matplotlib',
               ],
           #cmdclass = command_classes,
           

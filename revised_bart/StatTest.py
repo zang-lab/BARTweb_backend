@@ -58,19 +58,15 @@ def stat_test(AUCs, tf_dict, statfile, normfile):
     
     cols = ['score','pvalue','max_auc','zscore','rank_score','rank_zscore','rank_pvalue','rank_auc','rank_avg_z_p','rank_avg_z_p_a','rank_avg_z_p_a_irwinhall_pvalue']
     stat = pd.DataFrame(index = [tf for tf in tfs],columns = cols)
-    #stat = {}
     for tf in tfs.keys():
         if len(tfs[tf])>0: # filter the tf with few samples
-            #stat_test = stats.mstats.ks_twosamp(sam1,tfs[tf],alternative='greater')
             stat_test = stats.ranksums(tfs[tf],sam1)
-            #stat[tf] = [stat_test[0],stat_test[1]]
             stat.loc[tf]['score'] = stat_test[0]
-            # stat.loc[tf]['pvalue'] = stat_test[1]
             # one-sided test
             stat.loc[tf]['pvalue'] = stat_test[1]*0.5 if stat_test[0]>0 else 1-stat_test[1]*0.5
-      
-    # tf_stats = pd.read_csv(args.normfile,sep='\t',index_col=0)
-    tf_stats = pd.read_csv(normfile,sep='\t',index_col=0)
+
+    print(normfile)  
+    tf_stats = pd.read_csv(normfile, sep='\t', index_col=0)
     # cal the normalized stat-score 
     #print('Do Normalization...')
     for i in stat.index:
@@ -119,7 +115,6 @@ def stat_test(AUCs, tf_dict, statfile, normfile):
         stat.loc[i]['rank_avg_z_p_a_irwinhall_pvalue'] = irwin_hall_cdf(3*stat.loc[i]['rank_avg_z_p_a'],3)
         # print(i,stat.loc[i]) 
 
-    # statfile = args.outdir+os.sep+args.ofilename+'_bart_results.txt'
     with open(statfile,'w') as statout:
         statout.write('TF\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('statistic','pvalue','zscore','max_auc','re_rank','irwin_hall_pvalue'))
         for i in sorted(stat.index,key=lambda x: stat.loc[x]['rank_avg_z_p_a'],reverse=False):

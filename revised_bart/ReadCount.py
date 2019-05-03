@@ -14,8 +14,7 @@ under the terms of the BSD License.
 
 import os,re
 import bisect
-from BART.IOparser import get_tag_regions
-#from BART.OptValidator import
+from revised_bart import IOparser
 
 plus = re.compile('\+')
 minus = re.compile('\-')
@@ -77,7 +76,7 @@ def read_count_on_DHS(args):
     #specify the species
     # get the start-end regions of each read in each chrom (as key) and separate by strand
 
-    regions1, regions2 = get_tag_regions(args.species,args.format,args.infile)
+    regions1, regions2 = IOparser.get_tag_regions(args.species,args.format,args.infile)
 
     # get the counting position of each read(tag), chrom as key
     positions = get_read_positions({},regions1,1,args.fragmentsize)

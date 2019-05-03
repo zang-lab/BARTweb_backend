@@ -14,17 +14,17 @@ under the terms of the BSD License.
 '''
 
 import os,sys,time
-import StatTest
-
 import json
-from utils import model_logger as logger
+import multiprocessing # multiprocessing on dealing with TF datasets
+
+from revised_bart import StatTest
 
 def get_tf_file_data(tf_json):
     starttime = time.time()
     with open(tf_json, 'r') as fm:
         tf_file_map = json.load(fm)
     endtime = time.time()
-    logger.info("===loading tf file mapping list: {} seconds".format(endtime-starttime))
+    print("===loading tf file mapping list: {} seconds".format(endtime-starttime))
     return tf_file_map
     
 # 84M memory taken
@@ -33,13 +33,14 @@ def get_matrix_data(overlap_json):
     with open(overlap_json, 'r') as fm:
         matrix_data = json.load(fm)
     endtime = time.time()
-    logger.info("===loading matrix file: {} seconds".format(endtime-starttime))
+    print("===loading matrix file: {} seconds".format(endtime-starttime))
     return matrix_data
 
 def cal_auc_for_all_tfs(positions, matrix_data, tf_file_len):
     udhs_len = len(positions)
     groupsize = 10000   # 2.7M / 10000 = 272 steps
     groups = int(udhs_len/groupsize)
+
     print('total groups: ' + str(groups))
 
     dict_tf_auc = {} # each tf file auc
@@ -49,7 +50,7 @@ def cal_auc_for_all_tfs(positions, matrix_data, tf_file_len):
         each_tf_t[i] = []
         dict_tf_auc[i] = 0.0
     
-    logger.info("===parsing data in group size: {}".format(groupsize))
+    print("===parsing data in group size: {}".format(groupsize))
     for group_id in range(groups+1):
         count_tf_t = {}
         for i in range(1, tf_file_len+1):
@@ -95,11 +96,11 @@ def cal_auc_for_all_tfs(positions, matrix_data, tf_file_len):
 
     return dict_tf_auc
 
-def get_position_list(margefile):
+def get_position_list(enhancerfile):
     '''
-    Get the ID list of DHS, according to the decreasingly sorted scores in MARGE 
+    Get the ID list of DHS, according to the decreasingly sorted scores in MARGE enhancer profile
     ''' 
-    fin = open(margefile,'rb')
+    fin = open(enhancerfile,'rb')
     line = fin.readline()  
     score = {}
     while line:
@@ -112,8 +113,16 @@ def get_position_list(margefile):
     fin.close()
     return sorted(score.keys(),key=score.get,reverse=True)
 
-def cal_auc(margefile, tf_json, overlap_json, auc_file, statfile, normfile):
-    positions = get_position_list(margefile)
+def cal_auc(enhancerfile, args):
+    tf_json = args.tffile
+    overlap_json = args.tfoverlap
+    output_name = args.ofilename
+    normfile = args.normfile
+
+    auc_file = output_name + '_auc.txt'
+    stat_file = output_name + '_bart_results.txt'
+    
+    positions = get_position_list(enhancerfile)
     positions = [int(i) for i in positions]
     if len(positions) == 0:
         sys.stderr.write('Input file might not with right format!\n')
@@ -131,7 +140,7 @@ def cal_auc(margefile, tf_json, overlap_json, auc_file, statfile, normfile):
             aucf.write('{}\tAUC = {:.3f}\n'.format(tf_file_name, tf_auc[key]))
     print('\n--ROC-AUC calculation finished!\n--Results saved in file: {}\n'.format(auc_file))
     # StatTest.stat_test(AUCs,args)
-    StatTest.stat_test(tf_auc,tf_dict,statfile, normfile)
+    StatTest.stat_test(tf_auc, tf_dict, stat_file, normfile)
 
 if __name__ == '__main__':
     margefile = '/nv/vol190/zanglab/wm9tr/software/BART-v1.0.1-py3-full/BART/hg38_library/hg38_test_data/hg38_AR_up_genes_enhancer_prediction.txt'
@@ -141,8 +150,7 @@ if __name__ == '__main__':
     # tf_json = '/nv/vol190/zanglab/wm9tr/test/test_bart_storage/human_UAC_file_str_format.json'
     # overlap_json = '/nv/vol190/zanglab/wm9tr/test/test_bart_storage/human_UAC_matrix_str_format.json'
 
-    auc_file = 'test_bart/AR_aupr_json.txt'
-    stat_file = 'test_bart/AR_aupr_bart_result.txt'
+    output_name = 'test_bart/AR_aupr'
     norm_file = '/nv/vol190/zanglab/wm9tr/software/BART-v1.0.1-py3-full/BART/hg38_library/hg38_MSigDB.dat'
-    
-    cal_auc(margefile, tf_json, overlap_json, auc_file, stat_file, norm_file)
+
+    cal_auc(margefile, tf_json, overlap_json, output_name, norm_file)
