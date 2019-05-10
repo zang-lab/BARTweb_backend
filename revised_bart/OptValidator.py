@@ -23,8 +23,6 @@ def conf_validate():
     '''
     config = configparser.ConfigParser()
     pdir = os.path.dirname
-    # config.read(os.path.join(pdir(__file__),'bart.conf'))
-
     config_path = os.path.join(script_dir, 'bart.conf')
     if not os.path.exists(config_path):
         sys.stderr.write("CRITICAL: bart.conf does not exist in {}!\n".format(script_dir))
@@ -40,7 +38,7 @@ def opt_validate(options):
     config = conf_validate()
 
     if not options.outdir:
-        options.outdir = os.path.join(script_dir, 'bart_output')
+        options.outdir = os.path.join(os.getcwd(), 'bart_output') # create output directory at current working directory
 
     if not options.ofilename:
         # input only contains .bam/.bed/.txt
@@ -53,7 +51,6 @@ def opt_validate(options):
             infilebase = infilebase.split('.txt')[0]
         options.ofilename = os.path.join(options.outdir, infilebase) # xxx(.txt/.bed/.bam)
 
-    # config data path
     # === hg38 ===
     if options.species == 'hg38':   
         if config['path']['hg38_library_dir']:
@@ -62,20 +59,12 @@ def opt_validate(options):
             data_dir = os.path.join(script_dir, 'hg38_library')
         print("Library directory:" + data_dir)
 
-        # user for generating cis-regulatory profile
-        options.rp = os.path.join(data_dir, 'hg38_RP.h5')
-        options.rpkm = os.path.join(data_dir, 'hg38_UDHS_H3K27ac.h5')
-        options.tss = os.path.join(data_dir, 'hg38_refseq_TSS.bed')
-        options.desc = os.path.join(data_dir, 'SupTable1_HumanH3K27ac_Description.dat')
-        options.dhsfile = os.path.join(data_dir, 'hg38_UDHS.bed')
-
-        # used for BART AUC
-        options.tffile = os.path.join(data_dir, 'hg38_TF_file.json')
-        options.tfoverlap = os.path.join(data_dir, 'hg38_TF_overlap.json')
+        options.desc = data_dir+os.sep+'SupTable1_HumanH3K27ac_Description.dat'
+        # file for standardization
         if options.subcommand_name == 'geneset':
-            options.normfile = os.path.join(data_dir, 'hg38_MSigDB.dat')
+            options.normfile = data_dir+os.sep+'hg38_MSigDB.dat'
         elif options.subcommand_name == 'profile':
-            options.normfile = os.path.join(data_dir, 'hg38_H3K27ac.dat')
+            options.normfile = data_dir+os.sep+'hg38_H3K27ac.dat'
 
     # === mm10 ===
     elif options.species == 'mm10': 
@@ -84,21 +73,23 @@ def opt_validate(options):
         else:
             data_dir = os.path.join(script_dir, 'mm10_library')
         print("Library directory:" + data_dir)
-
-        # user for generating cis-regulatory profile
-        options.rp = os.path.join(data_dir, 'mm10_RP.h5')
-        options.rpkm = os.path.join(data_dir, 'mm10_UDHS_H3K27ac.h5')
-        options.tss = os.path.join(data_dir, 'mm10_refseq_TSS.bed')
-        options.desc = os.path.join(data_dir, 'SupTable1_MouseH3K27ac_Description.dat')
-        options.dhsfile = os.path.join(data_dir, 'mm10_UDHS.bed')
-
-        # used for BART AUC
-        options.tffile = os.path.join(data_dir, 'mm10_TF_file.json')
-        options.tfoverlap = os.path.join(data_dir, 'mm10_TF_overlap.json')
+        
+        options.desc = data_dir+os.sep+'SupTable1_MouseH3K27ac_Description.dat'
+        # file for standardization
         if options.subcommand_name == 'geneset':
             options.normfile = os.path.join(data_dir, 'mm10_H3K27ac.dat')
         elif options.subcommand_name == 'profile':
             options.normfile = os.path.join(data_dir, 'mm10_H3K27ac.dat')
+
+    # user for generating cis-regulatory profile
+    options.rp = data_dir+os.sep+options.species+'_RP.h5'
+    options.rpkm = data_dir+os.sep+options.species+'_UDHS_H3K27ac.h5'
+    options.tss = data_dir+os.sep+options.species+'_refseq_TSS.bed'
+    options.dhsfile = data_dir+os.sep+options.species+'_UDHS.bed'
+
+    # used for BART AUC calculation
+    options.tffile = data_dir+os.sep+options.species+'_TF_file.json'
+    options.tfoverlap = data_dir+os.sep+options.species+'_TF_overlap.json'
 
     return options
 

@@ -44,7 +44,7 @@ def irwin_hall_cdf(x,n):
 # def stat_test(AUCs,args): 
 def stat_test(AUCs, tf_dict, statfile, normfile): 
     # read AUCs according to TF type
-    print('Statistical tests start.\n')
+    sys.stdout.write('Statistical tests start.\n')
     tfs = {}
     sam1 = []
     for tf_key in AUCs.keys():
@@ -65,10 +65,9 @@ def stat_test(AUCs, tf_dict, statfile, normfile):
             # one-sided test
             stat.loc[tf]['pvalue'] = stat_test[1]*0.5 if stat_test[0]>0 else 1-stat_test[1]*0.5
 
-    print(normfile)  
     tf_stats = pd.read_csv(normfile, sep='\t', index_col=0)
     # cal the normalized stat-score 
-    #print('Do Normalization...')
+    sys.stdout.write('Do standardization...')
     for i in stat.index:
         #stat[i].append((stat[i][0]-tf_stats.loc[i,'mean'])/tf_stats.loc[i,'std']) #[2] for Z-Score
         try:
@@ -77,55 +76,48 @@ def stat_test(AUCs, tf_dict, statfile, normfile):
         except KeyError:
             stat.loc[i]['zscore'] = 0.0
             stat.loc[i]['max_auc'] = 0.0
-    
-    
+
     # rank the list by the average rank of stat-score and z-score
     # rank of Wilcoxon Socre
     rs = 1
     for i in sorted(stat.index,key = lambda x: stat.loc[x]['score'],reverse=True): 
-        #print(i,stat[i])
         stat.loc[i]['rank_score'] = rs #  rank of stat_score
-        #print(i,stat[i],'\n')
         rs +=1
-    
+
     # rank of Z-Score
     rz = 1
     for i in sorted(stat.index,key = lambda x: stat.loc[x]['zscore'],reverse=True):        
         stat.loc[i]['rank_zscore'] = rz # rank of z-score
-        #print(i,stat[i])
         rz +=1 
-               
+
     # rank of pvalue
     rp = 1
     for i in sorted(stat.index,key = lambda x: stat.loc[x]['pvalue'],reverse=False):        
         stat.loc[i]['rank_pvalue'] = rp #  rank of pvalue
-        #print(i,stat[i])
         rp +=1
 
     ra = 1
     for i in sorted(stat.index,key = lambda x: stat.loc[x]['max_auc'],reverse=True):        
         stat.loc[i]['rank_auc'] = ra #  rank of pvalue
-        #print(i,stat[i])
         ra +=1
-                
+
     # rank of average
     for i in stat.index:
         stat.loc[i]['rank_avg_z_p'] = (stat.loc[i]['rank_zscore']+stat.loc[i]['rank_pvalue'])*0.5   # [6] for average of stat-score and z-score
         stat.loc[i]['rank_avg_z_p_a'] = (stat.loc[i]['rank_zscore']+stat.loc[i]['rank_pvalue']+stat.loc[i]['rank_auc'])*0.33/len(tfs.keys())   # [7] for average of three
         stat.loc[i]['rank_avg_z_p_a_irwinhall_pvalue'] = irwin_hall_cdf(3*stat.loc[i]['rank_avg_z_p_a'],3)
-        # print(i,stat.loc[i]) 
 
     with open(statfile,'w') as statout:
         statout.write('TF\t{}\t{}\t{}\t{}\t{}\t{}\n'.format('statistic','pvalue','zscore','max_auc','re_rank','irwin_hall_pvalue'))
         for i in sorted(stat.index,key=lambda x: stat.loc[x]['rank_avg_z_p_a'],reverse=False):
             statout.write('{}\t{:.3f}\t{:.3e}\t{:.3f}\t{:.3f}\t{:.3f}\t{:.3e}\n'.format(i,stat.loc[i]['score'],stat.loc[i]['pvalue'],stat.loc[i]['zscore'],stat.loc[i]['max_auc'],stat.loc[i]['rank_avg_z_p_a'],stat.loc[i]['rank_avg_z_p_a_irwinhall_pvalue']))
-    print('--Standardization finished!\n--Ranked TFs saved in file: {}\n'.format(statfile))
-    
+    sys.stdout.write('--Standardization finished!\n--Ranked TFs saved in file: {}\n'.format(statfile))
+
     # plot figures of user defined TFs
     # if args.target:
     #     with open(args.target) as target_file:
     #         IDs = [re.split('[^a-zA-Z0-9]+',line)[0] for line in target_file.readlines()]
     #         for ID in IDs:
     #             stat_plot(stat,tfs,ID,args,'rank_avg_z_p_a')
-        
-    print('Prediction done!\n')
+
+    sys.stdout.write('Prediction done!\n')
