@@ -77,50 +77,49 @@ Positional arguments {geneset,profile}
 
 Given a query gene set (at least 100 genes recommended), predict functional transcription factors that regulate these genes.
 
-**Usage**:	bart geneset 	[-h] -i <file> -s <species> [-t <target>] [-p <processes>] 
-[--nonorm] [--outdir <outdir>] [-o <ofilename>]
+**Usage**:	`bart geneset [-h] -i <file> -s <species> [-t <target>] [-p <processes>] [--nonorm] [--outdir <outdir>] [-o <ofilename>]`
 
 **Example**:	bart geneset -i name_enhancer_prediction.txt -s hg38 -t target.txt -p 4 --outdir bart_output
 
 **Input arguments**:
 
-- -i <file>, --infile <file>
+`-i <file>, --infile <file>`
 
-  Input file contains gene symbol in each row.
+Input file contains gene symbol in each row.
 
-- --refseq 
+`—refseq` 
 
-  Input file contains 2 columns, one is geneID(refseqID) and the other is 1/0. 1 for traget and 0 for un-target. 
+Input file contains 2 columns, one is geneID(refseqID) and the other is 1/0. 1 for traget and 0 for un-target. 
 
-- -s <species>, --species <species>
+`-s <species>, --species <species>`
 
-  Species, please choose from "hg38" or "mm10".
+Species, please choose from "hg38" or "mm10".
 
-- -t <target>, --target <target>
+`-t <target>, --target <target>`
 
-  Target transcription factors of interests, please put each TF in one line. BART will generate extra plots showing prediction results for each TF.
+Target transcription factors of interests, please put each TF in one line. BART will generate extra plots showing prediction results for each TF.
 
-- -p <processes>, --processes <processes>
+`-p <processes>, --processes <processes>`
 
-  Number of CPUs BART can use.
+Number of CPUs BART can use.
 
-- --nonorm
+`--nonorm`
 
-  Whether or not do the standardization for each TF by all of its Wilcoxon statistic scores in our compendium. If set, BART will not do the normalization. Default: FALSE.
+Whether or not do the standardization for each TF by all of its Wilcoxon statistic scores in our compendium. If set, BART will not do the normalization. Default: FALSE.
 
 **Output arguments**:
 
-- --outdir <outdir>
+`--outdir <outdir>`
 
-  If specified, all output files will be written to that directory. Default: the current working directory
+If specified, all output files will be written to that directory. Default: the current working directory
 
-- -o <ofilename>, --ofilename <ofilename>
+`-o <ofilename>, --ofilename <ofilename>`
 
-  Name string of output files. Default: the base name of the input file.
+Name string of output files. Default: the base name of the input file.
 
 **Notes**:
 
-The input file for <BART geneset>, :
+The input file for \<BART geneset\> :
 
 a. Gene symbol version:
 
@@ -146,57 +145,54 @@ b. Refseq version:
 
 Given a ChIP-seq data file (bed or bam format mapped reads), predict transcription factors whose binding pattern associates with the input ChIP-seq profile.
 
-**Usage**: 	bart profile 	[-h] -i <file> -f <format> [-n <int>] -s <species>
-                    			[-t <target>] [-p <processes>] [--nonorm]
-                    			[--outdir <outdir>] [-o <ofilename>]
+**Usage**: 	`bart profile [-h] -i <file> -f <format> [-n <int>] -s <species> [-t <target>] [-p <processes>] [--nonorm][--outdir <outdir>] [-o <ofilename>]`
 
-**Example**:	bart profile 	-i ChIP.bed -f bed -s hg38 -t target.txt -p 4
+**Example**:	bart profile -i ChIP.bed -f bed -s hg38 -t target.txt -p 4
 				--outdir bart_output
-
 
 **Input files arguments**:
 
-- -i <file>, --infile <file>
+`-i <file>, --infile <file>`
 
-  Input ChIP-seq bed or bam file.
+Input ChIP-seq bed or bam file.
 
-- -f <format>, --format <format>
+`-f <format>, --format <format>`
 
-  Specify "bed" or "bam" format.
+Specify "bed" or "bam" format.
 
-- -n <int>, --fragmentsize <int>
+`-n <int>, --fragmentsize <int>`
 
-  Fragment size of ChIP-seq reads, in bps. Default: 150.
+Fragment size of ChIP-seq reads, in bps. Default: 150.
 
-- -s <species>, --species <species>
+`-s <species>, --species <species>`
 
-  Species, please choose from "hg38" or "mm10".
+Species, please choose from "hg38" or "mm10".
 
-- -t <target>, --target <target>
+`-t <target>, --target <target>`
 
-  Target transcription factors of interests, please put each TF in one line. BART will generate extra plots showing prediction results for each TF.
+Target transcription factors of interests, please put each TF in one line. BART will generate extra plots showing prediction results for each TF.
 
-- -p <processes>, --processes <processes>
+`-p <processes>, --processes <processes>`
 
-  Number of CPUs BART can use.
+Number of CPUs BART can use.
 
-- --nonorm
+`--nonorm`
 
-  Whether or not do the standardization for each TF by all of its Wilcoxon statistic scores in our compendium. If set, BART will not do the normalization. Default: FALSE.
+Whether or not do the standardization for each TF by all of its Wilcoxon statistic scores in our compendium. If set, BART will not do the normalization. Default: FALSE.
 
 **Output arguments**:
 
-- --outdir <outdir>
+`--outdir <outdir>`
 
-  If specified, all output files will be written to that directory. Default: the current working directory
+If specified, all output files will be written to that directory. Default: the current working directory
 
-- -o <ofilename>, --ofilename <ofilename>
+`-o <ofilename>, --ofilename <ofilename>`
 
-  Name string of output files. Default: the base name of input file.
+Name string of output files. Default: the base name of input file.
 
 **Notes**:
 
-The input file for <BART profile> should be [BED](https://genome.ucsc.edu/FAQ/FAQformat#format1) or [BAM](http://samtools.github.io/hts-specs/SAMv1.pdf) format in either hg38 or mm10. 
+The input file for \<BART profile\> should be [BED](https://genome.ucsc.edu/FAQ/FAQformat#format1) or [BAM](http://samtools.github.io/hts-specs/SAMv1.pdf) format in either hg38 or mm10. 
 
 Bed is a tab-delimited text file that defines the data lines, and the BED file format is described on [UCSC genome browser website](https://genome.ucsc.edu/FAQ/FAQformat). For BED format input, the first three columns should be chrom, chromStart, chromEnd, and the 6th column of strand information is required by BART. 
 
