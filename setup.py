@@ -12,9 +12,9 @@ under the terms of the BSD License.
 '''
 import sys
 from setuptools import setup, find_packages
-import BART
+import revised_bart
 
-with open("README.rst", "rb") as f:
+with open("README.md", "rb") as f:
     long_descr = f.read().decode("utf-8")
 
 def main():
@@ -23,7 +23,7 @@ def main():
         sys.exit(1)
         
     setup(name="revised_BART",
-          version=BART.__version__,
+          version=revised_bart.__version__,
           description="Binding Analysis for Regulatory Transcription Factors of Genes - Revised version",
           long_description=long_descr,
           author='Zhanjia Wang, Wenjing Ma',
@@ -56,8 +56,6 @@ def main():
               'Programming Language :: Python',
               ],
           install_requires=[
-              'argparse',
-              'configparser',
               'numpy',
               'pandas',
               'scipy',
