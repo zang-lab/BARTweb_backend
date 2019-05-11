@@ -16,9 +16,10 @@ def bart(options):
     try:
         os.makedirs(args.outdir, exist_ok=True)
     except:
-        sys.stderr.write('Output directory: {} could not be created.'.format(args.outdir))
+        sys.stderr.write('Output directory: {} could not be created. \n'.format(args.outdir))
         sys.exit(0)
-    sys.stdout.write("Output directory will be {}".format(args.ofilename))
+    sys.stdout.write("Output directory will be {} \n".format(args.outdir))
+    sys.stdout.write("Output file prefix will be {} \n".format(args.ofilename))
 
     if args.species == 'hg38':
         sys.stdout.write("Start prediction on hg38...\n")
@@ -50,7 +51,7 @@ def bart(options):
         selected samples file, gene file, output directory, species, UDHS, rpkm matrix
         '''
         sys.stdout.write("Generate cis-regulatory profile...\n")
-        EnhancerIdentifier.main(regression_info, args.infile, args.ofilename, args.species, args.dhsfile, args.rpkm)
+        EnhancerIdentifier.main(regression_info, args.ofilename, args.dhsfile, args.rpkm)
         enhancer_profile = args.ofilename + '_enhancer_prediction_lasso.txt'
         if not os.path.exists(enhancer_profile):
             sys.stderr.write("Error: generating enhancer profile! \n")

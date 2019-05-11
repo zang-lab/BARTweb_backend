@@ -22,7 +22,6 @@ def conf_validate():
     Read user provided path from 'bart.conf' config file
     '''
     config = configparser.ConfigParser()
-    pdir = os.path.dirname
     config_path = os.path.join(script_dir, 'bart.conf')
     if not os.path.exists(config_path):
         sys.stderr.write("CRITICAL: bart.conf does not exist in {}!\n".format(script_dir))
@@ -50,13 +49,18 @@ def opt_validate(options):
         elif infilebase.endswith('.txt'):
             infilebase = infilebase.split('.txt')[0]
         options.ofilename = os.path.join(options.outdir, infilebase) # xxx(.txt/.bed/.bam)
+    else:
+        # in case user enter a directory
+        options.ofilename = os.path.basename(options.ofilename)
+        options.ofilename = os.path.join(options.outdir, options.ofilename)
 
     # === hg38 ===
     if options.species == 'hg38':   
         if config['path']['hg38_library_dir']:
             data_dir = os.path.join(config['path']['hg38_library_dir'], 'hg38_library')
         else:
-            data_dir = os.path.join(script_dir, 'hg38_library')
+            lib_dir = os.path.join(os.path.dirname(script_dir), 'lib')
+            data_dir = os.path.join(lib_dir, 'hg38_library')
         print("Library directory:" + data_dir)
 
         options.desc = data_dir+os.sep+'SupTable1_HumanH3K27ac_Description.dat'
@@ -71,7 +75,8 @@ def opt_validate(options):
         if config['path']['mm10_library_dir']:
             data_dir = os.path.join(config['path']['mm10_library_dir'], 'mm10_library')
         else:
-            data_dir = os.path.join(script_dir, 'mm10_library')
+            lib_dir = os.path.join(os.path.dirname(script_dir), 'lib')
+            data_dir = os.path.join(lib_dir, '/mm10_library')
         print("Library directory:" + data_dir)
         
         options.desc = data_dir+os.sep+'SupTable1_MouseH3K27ac_Description.dat'
@@ -81,7 +86,7 @@ def opt_validate(options):
         elif options.subcommand_name == 'profile':
             options.normfile = os.path.join(data_dir, 'mm10_H3K27ac.dat')
 
-    # user for generating cis-regulatory profile
+    # used for generating cis-regulatory profile
     options.rp = data_dir+os.sep+options.species+'_RP.h5'
     options.rpkm = data_dir+os.sep+options.species+'_UDHS_H3K27ac.h5'
     options.tss = data_dir+os.sep+options.species+'_refseq_TSS.bed'

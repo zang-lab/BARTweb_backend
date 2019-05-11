@@ -245,8 +245,7 @@ def read_genelistOnly(sym, fname, index, gname2, sepby_chrom=True):
     return (genenames, status,train_index,test_index)  
 
 def dataset_annotation(annotationf):
-    #get the cell annotation for each datasetID
-    # change original description to 
+    # get the cell annotation for each datasetID
     inf = open(annotationf,'rU')
     ann = {}
     for line in inf:
@@ -363,6 +362,7 @@ def regress(x, y, train_index, test_index, samplenames, name, change, maxsamples
         plt.savefig('%s_roc.png'%name)
         plt.show()
         print("==============")
+
     outf = open(name + '_' + change + '_regressionInfo.txt','w')
     for k,elem in enumerate(record):
         dataID = col_list[elem].split('_')[0]
@@ -452,11 +452,12 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
         else:
             alpha=0.2
         X_w = x / weights
-        #alpha,best_cvs = best_alpha(X_w,y) # if you need to select best alpha for each step later
+        #alpha,best_cvs = best_alpha(X_w,y) # TODO: if you need to select best alpha for each step later
         #alpha = 0.1
-        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01,fit_intercept=True,C=alpha)  # TODO: set fixed seed
+        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01, fit_intercept=True, C=alpha, random_state=2019)  # set fixed seed
         estimator.fit(X_w,y)
-        coef_ = estimator.coef_/weights#;print(coef_)
+        coef_ = estimator.coef_/weights
+        # print(coef_)
         weights = gprime(coef_)
         selected_features = len([i for i in coef_[0] if i !=0])
         print(k,alpha,selected_features)
@@ -471,14 +472,12 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     fpr, tpr, thresholds = metrics.roc_curve(yt, yhat[:,1], pos_label=1)
     auc = metrics.auc(fpr,tpr)
     
+#    print(k,'alpha',alpha)
+#    print(k,'best_cvs',best_cvs)
+#    print(k,'auc',auc)
+#    print(k,'selected_features',selected_features)
 
-#         print(k,'alpha',alpha)
-#         print(k,'best_cvs',best_cvs)
-#         print(k,'auc',auc)
-#         print(k,'selected_features',selected_features)
-# 
     outf = open('{}_adaptive_lasso_Info.txt'.format(name),'w')
-    # for coef in [ i for i in coef_[0] if i!=0]:
     for coef in sorted([ i for i in coef_[0] if i!=0], key=abs, reverse=True):
         samplefile = samplefiles[list(coef_[0]).index(coef)]
         dataID = samplefile.split('_')[0]
@@ -486,31 +485,19 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
             annInfo =  ann[dataID]
         else:
             annInfo = ['NA','NA','NA']
-
         outf.write('{}\t{}\t{}\n'.format(dataID, coef, '\t'.join(annInfo)))
+
     outf.write('AUC = {}\n'.format(auc))
     outf.write('best_cvs = {}\n'.format(best_cvs))
     outf.write('selected_features = {}\n'.format(selected_features))
     return auc,selected_features
 
 def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, sqrttrans, exptype,gname2, sepby_chrom, annotation):
-    #symfile is the gene annotation file, change to gene symbol file
-    basedir = os.path.dirname(name);print(basedir)
-    os.makedirs(basedir,exist_ok=True)
-
-    sym = gene_sym(symfile) # {"resfseq": {"gene_symbol", "chr"}} -> {"gene_symbol": "chr"}
+    # TODO: symfile is the refseqID annotation file, change to gene symbol file?
+    sym = gene_sym(symfile) # {"resfseq": {"gene_symbol", "chr"}}
 
     h5file = tables.open_file( rp_hdf5, driver="H5FD_CORE")
-    #TODO: For testing the old GSM ids
     samplenames  = getSampleNames_hdf5(h5file)
-
-    # old_samplenames = '/nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/marge_bart_pipeline/human_366_only_one_rep_samples_GSMs.txt' # 352 unique GSM ids
-    # old_samplenames = '/nv/vol190/zanglab/wm9tr/data/marge_data/RelativeRP/test_marge/marge_bart_pipeline/human_366_samples_GSMs.txt' # 445 GSM ids
-    # samplenames = []
-    # with open(old_samplenames, 'r') as fopen:
-    #     for line in fopen:
-    #         samplenames.append(line.strip())
-
     z   = readregpotfiles(sym,genome,samplenames,h5file)
     h5file.close()
     
@@ -536,10 +523,8 @@ def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, 
         sys.exit()
     
     x = z.x[:,:-5] # remove the last few columns: refseq, start, chr, etc...
-    ann = dataset_annotation( annotation )
+    ann = dataset_annotation(annotation)
     #coef,rprecord,yhat,record = regress( x, y, train_index, test_index, z.rpfiles, name, change, maxsamples, sepby_chrom, ann, genenames )
-
-
     #x = z.x#[:,:20]
     #z.rpfiles = z.rpfiles[:20]
 
@@ -549,7 +534,6 @@ def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, 
     
     
 if __name__ == "__main__":
-
     try:
         parser = argparse.ArgumentParser(description="""Regression of regulatory potential to gene expression changes.""")
         parser.add_argument( '-e','--expr', dest='expr', required = True, type = str, help = 'The related differential expression file')
@@ -563,18 +547,14 @@ if __name__ == "__main__":
         parser.add_argument( '--maxsamples', dest='maxsamples',  type=int, default=20, required=False, help='Maximum number of samples to include in regression model.' )
         parser.add_argument( '-l', '--logtrans', dest='logtrans',  default=False,  action='store_true', help='Use log transformation on regulatory potential (default is do nothing), this is complementary with -s, --sqrttrans.' )
         parser.add_argument( '-s', '--sqrttrans', dest='sqrttrans',  default=False,  action='store_true', help='Use sqrt transformation on regulatory potential (default is do nothing). this is complementary with -l, --logtrans.' )
-        # parser.add_argument( '-m', dest='sym', type=str, required=True, help='refseqTSS is six columns: <chromosome name> <TSS> <TSS+1> <refseq:genesymbok> <score> <strand>')
-        parser.add_argument( '-m', dest='sym', type=str, required=True, help='genesymbolTSS is six columns: <chromosome name> <TSS-1> <TSS+1> <genesymbol> <score> <strand>')
+        parser.add_argument( '-m', dest='sym', type=str, required=True, help='refseqTSS is six columns: <chromosome name> <TSS> <TSS+1> <refseq:genesymbok> <score> <strand>')
+        # parser.add_argument( '-m', dest='sym', type=str, required=True, help='genesymbolTSS is six columns: <chromosome name> <TSS-1> <TSS+1> <genesymbol> <score> <strand>')
         parser.add_argument( '--sc', dest='sepby_chrom',  default=False,  action='store_true', help='Whether to seperate chroms to do cross validation, default = False' )
         parser.add_argument( '-a', dest='annotation', required=True,  type=str, help='The annotation file for each dataset' )
 
         args = parser.parse_args()
-
- 
         main( args.genome, args.histRP, args.expr, args.sym, args.name, 'target', args.maxsamples, args.logtrans, args.sqrttrans, args.exptype, args.gname2, args.sepby_chrom, args.annotation )
 
     except KeyboardInterrupt:
         sys.stderr.write("User interrupted me!\n")
         sys.exit(0)
-
-
