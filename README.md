@@ -77,7 +77,7 @@ Positional arguments {geneset,profile}
 
 Given a query gene set (at least 100 genes recommended), predict functional transcription factors that regulate these genes.
 
-**Usage**:	`bart geneset [-h] -i <file> -s <species> [-t <target>] [-p <processes>] [--nonorm] [--outdir <outdir>] [-o <ofilename>]`
+**Usage**:	`bart geneset [-h] -i <file> [--refseq] -s <species> [-t <target>] [-p <processes>] [--nonorm] [--outdir <outdir>] [-o <ofilename>]`
 
 **Example**:	bart geneset -i name_enhancer_prediction.txt -s hg38 -t target.txt -p 4 --outdir bart_output
 
@@ -87,7 +87,7 @@ Given a query gene set (at least 100 genes recommended), predict functional tran
 
 Input file contains gene symbol in each row.
 
-`—refseq` 
+`--refseq` 
 
 Input file contains 2 columns, one is geneID(refseqID) and the other is 1/0. 1 for traget and 0 for un-target. 
 
