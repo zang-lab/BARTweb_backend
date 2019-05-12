@@ -42,8 +42,7 @@ def main():
                                 'mm10_library/*.json',
                                 'mm10_library/*.h5',
                                 'mm10_library/mm10_test_data/*'],},
-          #data_files=[('.',['bart.conf'])],
-          #include_package_data=True,
+          # include_package_data=True,
           scripts=['bin/revised_bart',],
           classifiers=[
               'Development Status :: 4 - Beta',

@@ -25,3 +25,7 @@ var/
 
 # bart output file
 bart_output/
+
+# bart library file
+hg38_library/
+mm10_library/

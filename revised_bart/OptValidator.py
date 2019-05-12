@@ -59,8 +59,7 @@ def opt_validate(options):
         if config['path']['hg38_library_dir']:
             data_dir = os.path.join(config['path']['hg38_library_dir'], 'hg38_library')
         else:
-            lib_dir = os.path.join(os.path.dirname(script_dir), 'lib')
-            data_dir = os.path.join(lib_dir, 'hg38_library')
+            data_dir = os.path.join(script_dir, 'hg38_library')
         print("Library directory:" + data_dir)
 
         options.desc = data_dir+os.sep+'SupTable1_HumanH3K27ac_Description.dat'
@@ -75,8 +74,7 @@ def opt_validate(options):
         if config['path']['mm10_library_dir']:
             data_dir = os.path.join(config['path']['mm10_library_dir'], 'mm10_library')
         else:
-            lib_dir = os.path.join(os.path.dirname(script_dir), 'lib')
-            data_dir = os.path.join(lib_dir, '/mm10_library')
+            data_dir = os.path.join(script_dir, 'mm10_library')
         print("Library directory:" + data_dir)
         
         options.desc = data_dir+os.sep+'SupTable1_MouseH3K27ac_Description.dat'
