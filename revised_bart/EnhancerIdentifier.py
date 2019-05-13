@@ -3,6 +3,8 @@ import tables
 import time,re
 import numpy as np
 
+from revised_bart import RPRegress
+
 # read in H3K27ac sample IDs
 def read_sample_list(fname):
     fp = open(fname)
@@ -15,25 +17,6 @@ def read_sample_list(fname):
             scores += [float(line[1])]
     fp.close()
     return sl,scores
-
-# read in H3K27ac signal on union DHS sites for sample
-def read_hdf5( h5file, sample_names ):
-    """ Apply motif stat function to all data in motif_file_name. 
-    Data in numpy array val corresponds to idx entries. If idx if None all entries are used.""" 
-
-    #h5file = tables.open_file( file_name, driver="H5FD_CORE")    
-    X = None
-
-    for elem in sample_names:
-        a = h5file.get_node("/", elem )
-        m = a.read()
-        if X is None:
-            X = m
-        else:
-            X = numpy.vstack((X,m))
-
-    X = X.transpose()
-    return X
 
 # rank np vector 
 def rank(a):
@@ -57,10 +40,6 @@ def quantile_norm(X):
     for i in range(Y.shape[1]):
         r = rank(X[:,i])
         X[r,i] = row_mu
-    return X
-
-def rowcenter(X):
-    X = (X.transpose()-X.mean(1)).transpose()
     return X
 
 def read_table(tffile,col=1,ctype=int):
@@ -92,13 +71,13 @@ def main(samplefile, output_name, UAC_info, UAC_H3K27ac, tffile=None):
     print(DHS_sample_names)
     # read data from RPKM H3K27ac hdf5 file
     udhs_h5file = tables.open_file( UAC_H3K27ac, driver="H5FD_CORE")    
-    chrom = read_hdf5(udhs_h5file, ["chrom"])
-    start = read_hdf5(udhs_h5file, ["start"])
-    end = read_hdf5(udhs_h5file, ["end"])
-    ID = read_hdf5(udhs_h5file, ["ID"])
+    chrom = RPRegress.read_hdf5(udhs_h5file, "chrom")
+    start = RPRegress.read_hdf5(udhs_h5file, "start")
+    end = RPRegress.read_hdf5(udhs_h5file, "end")
+    ID = RPRegress.read_hdf5(udhs_h5file, "ID")
     DHS = None
     for dhs_samplename in DHS_sample_names:
-        dhs = read_hdf5(udhs_h5file, [dhs_samplename])
+        dhs = RPRegress.read_hdf5(udhs_h5file, dhs_samplename)
         dhs = np.array(dhs)
         dhs = dhs.transpose()
         if DHS is None:
@@ -110,8 +89,6 @@ def main(samplefile, output_name, UAC_info, UAC_H3K27ac, tffile=None):
 
     DHS = np.sqrt(DHS)
     DHS = median_norm(DHS)
-    DHS = rowcenter(DHS)
-        
     T = np.dot(DHS,sample_weights) # coef * H3K27ac RPKM signals
 
     out_res = []

@@ -1,15 +1,9 @@
-import warnings
-warnings.filterwarnings("ignore", category=FutureWarning)
-warnings.filterwarnings("ignore", category=DeprecationWarning)
-
 import argparse,math,os,sys,tables
 import numpy as np
 from operator import itemgetter
-from sklearn import linear_model
-from sklearn import cross_validation
-from sklearn import metrics
-#import regions
+from sklearn import linear_model, model_selection, metrics
 import random
+
 import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
@@ -31,18 +25,14 @@ class dataset(object):
 def gene_sym(symfile):
     """
     One representative of each gene symbol is chosen. 
+
     """
+    # TODO: change the selection from the first to the longest gene body
+
     # return {"refseq":["symbol","chr"]}
     fp = open(symfile)
     symdict = {} # {"gene_symbol": ["refseq_ID", "chr"]}  the first refseq ID in the TSS file
 
-    # for gene symbol h5 as RP matrix
-    # for line in fp:
-    #     sline = line.strip().split('\t')
-    #     symbol = sline[3]
-    #     chr_info = sline[0]
-    #     symdict[symbol] = chr_info
-        
     for line in fp:
         f = line.strip().split('\t')
         #print f
@@ -57,7 +47,7 @@ def gene_sym(symfile):
         rsymdict[symdict[elem][0]] = [elem,symdict[elem][1]]
     fp.close()
 
-    return symdict
+    return rsymdict
 
 def scalartransform(x):
     pcount = 1
@@ -74,8 +64,6 @@ def transform(x):
 
 def sqrttansform(x):
     xt = np.array(x)
-    pcount = 1
-    xt += pcount
     med = np.median( xt,0 )
     x = np.sqrt(xt) - np.sqrt(med)
     return x
@@ -123,44 +111,34 @@ def readregpotfiles(sym,genome,samplenames,h5file):
     x = None
     nsamples = len(samplenames)
 
-    # refseqID = read_hdf5( h5file, 'refseqID' )
-    # print(refseqID)
+    refseqID = read_hdf5( h5file, 'refseqID' )
+    print(refseqID)
     symID = read_hdf5(h5file, 'symbol')
     print(symID)
     chrom = read_hdf5(h5file, 'chr')
-    #print(chrom)
     start = read_hdf5(h5file, 'start')
-    #print(start)
     for k,name in enumerate(samplenames):
         if index == None:
-            print(name)
             index = {}
             info = {}
             i = 0
-            # for j,geneid in enumerate(refseqID):
-            for j,geneid in enumerate(symID):
+            for j,geneid in enumerate(refseqID):
                 geneid = geneid.decode("utf-8")  # gene symbol
                 if geneid in sym:
-                    # symid = sym[geneid][0]
-                    # if symid not in index:
-                    if geneid not in index:
-                        # index[symid] = i
-                        # info[symid] = [chrom[j].decode("utf-8"),start[j]]
-                        index[geneid] = i
-                        info[geneid] = [chrom[j].decode("utf-8"),start[j]]
+                    symid = sym[geneid][0]
+                    if symid not in index:
+                        index[symid] = i
+                        info[symid] = [chrom[j].decode("utf-8"),start[j]]
                         i += 1
             ngenes = len(index)
             x = np.zeros((ngenes,nsamples))
             print(np.shape(x))
             
         RP = read_hdf5( h5file, name )
-        # for i,geneid in enumerate(refseqID):
-        for i,geneid in enumerate(symID):
+        for i,geneid in enumerate(refseqID):
             geneid = geneid.decode("utf-8")
             if geneid in sym:
-                symid = geneid
-                # symid = sym[geneid][0]
-                # symid = sym[geneid][0]
+                symid = sym[geneid][0]
                 rp = RP[i]
                 try:
                     x[index[symid],k] = rp  ### float num was ignored here, e.g., 'chr', 'refseqID', 'start', 'symbol'
@@ -197,25 +175,13 @@ def read_genelistOnly(sym, fname, index, gname2, sepby_chrom=True):
     for ag in allgenes:
         if gname2:
             try:
-                # i = index[sym[ag][0]]
-                # if sym[ag][1] in train_chroms:
-                #     train_index.append(i)
-                # elif sym[ag][1] in test_chroms:
-                #     test_index.append(i)
-                i = index[ag]
-                if sym[ag] in train_chroms:
+                i = index[sym[ag][0]]
+                if sym[ag][1] in train_chroms:
                     train_index.append(i)
-                elif sym[ag] in test_chroms:
+                elif sym[ag][1] in test_chroms:
                     test_index.append(i)
-                else:
-                    pass
                 #print i
-                # if sym[ag][0] in genes:
-                #     #print sym[ag][0]
-                #     status[i] = TARGET
-                # else:
-                #     status[i] = UNCHANGED
-                if ag in genes:
+                if sym[ag][0] in genes:
                     #print sym[ag][0]
                     status[i] = TARGET
                 else:
@@ -259,15 +225,6 @@ def dataset_annotation(annotationf):
                 ann[ID] = info
             except:
                 ann[ID] = 'NA'
-
-            # TODO: for GSMid annotation
-            # line = line.strip().split(',')
-            # ID = line[1] # dataset id -> GSM id
-            # info = [line[2],line[3],line[4]] # CellLineName, Tissue/Organ, DetailedTissue
-            # try:
-            #     ann[ID] = info
-            # except:
-            #     ann[ID] = 'NA'
     return ann
 
 
@@ -303,11 +260,11 @@ def regress(x, y, train_index, test_index, samplenames, name, change, maxsamples
                         xt = xt[rand_idx,:]
                         yt = y[rand_idx] 
                         xt.reshape( (x.shape[0],len(trial))) #???
-                        X_train, X_test, y_train, y_test = cross_validation.train_test_split( xt, yt )
+                        X_train, X_test, y_train, y_test = model_selection.train_test_split( xt, yt )
                         LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01)
                         #LR_l1.fit(X_train,y_train)
-                        #cvscore += [ np.mean( cross_validation.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
-                        cvscore += [ np.mean( cross_validation.cross_val_score( LR_l1, xt, yt, scoring='roc_auc', cv=5 ) ) ]
+                        #cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
+                        cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, xt, yt, scoring='roc_auc', cv=5 ) ) ]
                     else:
                         xt = x[:,trial]
                         yt = y
@@ -317,7 +274,7 @@ def regress(x, y, train_index, test_index, samplenames, name, change, maxsamples
                         X_train.reshape((X_train.shape[0],len(trial)))
                         LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01)
                         LR_l1.fit(X_train,y_train)
-                        cvscore += [ np.mean( cross_validation.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
+                        cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
                 else:
                     cvscore += [0]
                     continue
@@ -379,11 +336,10 @@ def regress(x, y, train_index, test_index, samplenames, name, change, maxsamples
     return LR_l1.coef_, [ col_list[i]  for i in record ], yhat, record
 
 def lasso_test(x,y):
-    
     # given x,y, return auc score
     LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01)
     LR_l1.fit(x,y)
-    #np.mean( cross_validation.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ))
+    #np.mean( model_selection.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ))
     yhat = LR_l1.predict_log_proba(x)
     fpr, tpr, thresholds = metrics.roc_curve(y, yhat[:,1], pos_label=1)
     auc = metrics.auc(fpr,tpr)
@@ -397,7 +353,7 @@ def lasso_test_best_alpha(x,y,prename):
     plt.figure()
     for alpha in alphas:
         LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01,fit_intercept=True,C=alpha);print(alpha)
-        cvs_scores = cross_validation.cross_val_score( LR_l1, x, y, scoring='roc_auc', cv=5 )
+        cvs_scores = model_selection.cross_val_score( LR_l1, x, y, scoring='roc_auc', cv=5 )
         alpha_cvs.append(cvs_scores)
         
         LR_l1.fit(x,y)
@@ -427,7 +383,7 @@ def best_alpha(x,y):
     
     for alpha in alphas:
         LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01,fit_intercept=True,C=alpha)
-        cvs_scores = cross_validation.cross_val_score( LR_l1, x, y, scoring='roc_auc', cv=5 )
+        cvs_scores = model_selection.cross_val_score( LR_l1, x, y, scoring='roc_auc', cv=5 )
         alpha_cvs.append(cvs_scores) 
         print('  =best-alpha= ',alpha, '==mean-cvs==',np.mean(cvs_scores))
     alpha_cvs_mean = [i.mean() for i in alpha_cvs]
@@ -438,7 +394,6 @@ def best_alpha(x,y):
 
 def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     # test of adaptive lasso
- 
     g = lambda w:np.sqrt(np.abs(w))
     gprime = lambda w: 1.0/(2.*np.sqrt(np.abs(w))+np.finfo(float).eps)
     n_samples,n_features = x.shape
@@ -454,7 +409,7 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
         X_w = x / weights
         #alpha,best_cvs = best_alpha(X_w,y) # TODO: if you need to select best alpha for each step later
         #alpha = 0.1
-        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01, fit_intercept=True, C=alpha, random_state=2019)  # set fixed seed
+        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01, fit_intercept=True, C=alpha, random_state=2019, solver="liblinear")  # set fixed seed and default server
         estimator.fit(X_w,y)
         coef_ = estimator.coef_/weights
         # print(coef_)
@@ -466,7 +421,7 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     random.shuffle( rand_idx )
     # xt = np.multiply(x,coef_);print(xt.shape)
     xt,yt = X_w[rand_idx,:], y[rand_idx]
-    cvs_scores = cross_validation.cross_val_score(estimator ,xt,yt,  scoring='roc_auc', cv=5 )
+    cvs_scores = model_selection.cross_val_score(estimator ,xt,yt,  scoring='roc_auc', cv=5 )
     best_cvs = np.mean(cvs_scores)
     yhat = estimator.predict_log_proba(xt)
     fpr, tpr, thresholds = metrics.roc_curve(yt, yhat[:,1], pos_label=1)
