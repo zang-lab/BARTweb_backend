@@ -1,0 +1,9 @@
+0-59 * * * * /bin/bash /sfs/bart/check_SQS.sh >> /sfs/bart/log/check_SQS.log 2>&1      # check SQS message every minute
+*/5 * * * * /home/wm9tr/miniconda3/bin/python /sfs/bart/send_mail.py >> /sfs/bart/log/send_mail.log 2>&1      # send mail every 5 minutes
+# 1 0 * * * find /sfs/bart/usercase -maxdepth 1 -type d -ctime +30 -exec rm -rf {} + >> /sfs/bart/log/clean_dir.log 2>&1   # remove usercase everyday on 00:01
+# 1 0 * * * /bin/bash /sfs/bart/rm_marge_folder.sh >> /sfs/bart/log/clean_dir.log 2>&1   # remove marge_* under usercase everyday on 01:01
+
+#recurring timed job
+#to run   crontab -e
+#to list current chrontab entries crontab -l
+
