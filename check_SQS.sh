@@ -6,7 +6,8 @@
 # Requires the jq JSON parser
 # Follow these steps: https://stedolan.github.io/jq/
 
-BART_dir="/sfs/bart"
+# Change the directory to save in the same folder
+BART_dir=$PWD
 LOG_dir=$BART_dir/log
 
 # Check the queue for message count.

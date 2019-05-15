@@ -72,75 +72,10 @@ def execute_sh(user_data):
     command_dir = os.path.join(user_data['user_path'],'run_bart.sh')
     cmd = '/bin/bash '+command_dir
     callret = call(cmd, shell=True)
-    commandret = []
+    commandret = 'I will write something when this actrually goes wrong'
 
     return callret,commandret
 
-
-
-
-# def ssh_rivanna(user_key, user_path):
-#     # the slurm is generated when user finished configuration, and move with usercase
-#     user_config_file = os.path.join(user_path, 'user.config')
-
-#     rivanna_usercase_path = ''
-#     user_config_data = {}
-#     with open(user_config_file, 'r') as fopen:
-#         user_config_data = yaml.load(fopen)
-#     if 'status' in user_config_data:
-#         return 1 # if already processing, skip it
-
-#     rivanna_usercase_path = user_config_data['user_path']  # get path in Rivanna
-
-#     if not rivanna_usercase_path or not user_config_data:
-#         logger.error('SSH Rivanna: Rivanna user path does not exist, please check!')
-#         logger.error('SSH Rivanna: ' + user_key)
-#         if user_config_data:
-#             user_config_data['status'] = 'Error'
-
-#             with open(user_config_file, 'w') as fopen:
-#                 yaml.safe_dump(user_config_data, fopen, default_flow_style=False, encoding='utf-8', allow_unicode=True)
-#         return -1    
-#     try: 
-#         # connect to rivanna
-#         client = paramiko.SSHClient()
-#         client.set_missing_host_key_policy(paramiko.AutoAddPolicy())
-#         client.load_system_host_keys()
-#         client.connect(HOST, username=USER)
-#         logger.info('SSH Rivanna: Connecting to rivanna.')
-#         cmd = 'cd {0} && sbatch {0}/exe.slurm'.format(rivanna_usercase_path)
-#         logger.info('SSH Rivanna: ' + cmd)
-#         stdin, stdout, stderr = client.exec_command(cmd)
-#         logger.info(stdout.read())
-#         logger.info(stderr.read())
-
-#         client.close()
-
-#         user_config_data['status'] = 'Processing'
-#         with open(user_config_file, 'w') as fopen:
-#             yaml.safe_dump(user_config_data, fopen, default_flow_style=False, encoding='utf-8', allow_unicode=True)
-#         return 0
-
-#     except paramiko.BadHostKeyException as e:
-#         logger.error('SSH failed!!! BadHostKeyException')
-#         logger.error(e)
-#         raise Exception('BadHostKeyException')
-#     except paramiko.AuthenticationException as e:
-#         logger.error('SSH failed!!! AuthenticationException')
-#         logger.error(e)
-#         raise Exception('AuthenticationException')
-#     except paramiko.SSHException as e:
-#         logger.error('SSH failed!!! SSHException')
-#         logger.error(e)
-#         raise Exception('SSHException')
-#     except socket.error as e:
-#         logger.error('SSH failed!!! Communication socket error')
-#         logger.error(e)
-
-    # (paramiko.BadHostKeyException, paramiko.AuthenticationException, 
-    #                 paramiko.SSHException, socket.error) as e:
-    #     logger.error('SSH failed!!! please check authorizations or internet connection:')
-    #     logger.error(e)
 
 
 if __name__ == '__main__':
