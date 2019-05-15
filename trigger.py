@@ -1,32 +1,18 @@
 import os
 import yaml
-import logging
 from subprocess import call
+from utils import model_logger as logger
 
 
 # user ssh to rivanna and submit job for user
+PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 MONITOR_FILE = 'user_queue.yaml'
-USERCASE_DIR = '/home/yifan/Documents/Bart-web/BARTweb_docker/usercase' #path in the server
-LOG_FILE = '/home/yifan/Documents/Bart-web/BARTweb_docker/log/powhatan_trigger.log'
+#USERCASE_DIR = '/home/yifan/Documents/Bart-web/BARTweb_docker/usercase' #path in the server
+#LOG_FILE = '/home/yifan/Documents/Bart-web/BARTweb_docker/log/powhatan_trigger.log'
 
-# config logging
-# classical logger
-logger = logging.getLogger('trigger')
-logger.setLevel(logging.DEBUG)
-# write log to file
-file_handler = logging.FileHandler(LOG_FILE)
-file_handler.setLevel(logging.DEBUG)
-# write log to console
-console_handler = logging.StreamHandler()
-console_handler.setLevel(logging.ERROR)
-# log formatter
-formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(message)s')
-file_handler.setFormatter(formatter)
-console_handler.setFormatter(formatter)
-# add the handlers to the logger
-logger.addHandler(file_handler)
-logger.addHandler(console_handler)
+USERCASE_DIR = os.path.join(PROJECT_DIR, 'usercase')
+
 
 def load_queue():
     try:

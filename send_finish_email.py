@@ -16,6 +16,7 @@ def get_config(user_path):
 
     # handle non-existing exception
     if not os.path.exists(config_file):
+        logger.error("Send e-mail: config file does not exist")
         return None
 
     with open(config_file, 'r') as fopen:
@@ -24,7 +25,7 @@ def get_config(user_path):
     return user_data
 
 def send_email(user_email,title,message):
-    HOST_ADDRESS = "zanglab.service@gmail.com"
+    HOST_ADDRESS = "zanglab.service@gmail.com" #os.environ['ZangLAb_HOST_ADDRESS'] remember to check if envirmental variable exist and log it
     PASSWORD = "ZangLab2018"
     msg = MIMEMultipart()
     msg['From'] = HOST_ADDRESS

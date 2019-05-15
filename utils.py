@@ -7,7 +7,7 @@ import yaml
 import logging
 from logging.handlers import RotatingFileHandler
 
-PROJECT_DIR = os.path.dirname(__file__)
+PROJECT_DIR = os.path.dirname(os.path.realpath(__file__))
 
 DebugConf = True
 #DebugConf = False
@@ -19,7 +19,7 @@ formatter = logging.Formatter('[%(asctime)s][pid:%(process)s-tid:%(thread)s] %(m
 # StreamHandler for print log to console
 hdr = logging.StreamHandler()
 hdr.setFormatter(formatter)
-hdr.setLevel(logging.DEBUG)
+hdr.setLevel(logging.DEBUG) #level at debug, which output debug info and error information to screen according to level of information
 
 # RotatingFileHandler
 ## Set log dir
@@ -29,9 +29,9 @@ if not os.path.exists(log_dir_path):
     os.makedirs(log_dir_path)
 
 ## Specific file handler
-fhr_model = RotatingFileHandler('%s/bart-web.log'%(log_dir_path), maxBytes=10*1024*1024, backupCount=3)
+fhr_model = RotatingFileHandler('%s/bartweb_backend.log'%(log_dir_path), maxBytes=10*1024*1024, backupCount=3)
 fhr_model.setFormatter(formatter)
-fhr_model.setLevel(logging.DEBUG)
+fhr_model.setLevel(logging.DEBUG) #level at debug, which output debug info and error information to screen according to level of information
 
 model_logger.addHandler(fhr_model)
 if DebugConf:
