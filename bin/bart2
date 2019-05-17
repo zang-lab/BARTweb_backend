@@ -91,7 +91,7 @@ def add_geneset_parser( subparsers ):
     #group_input.add_argument('-d', '--divide', action = 'store', type = int,dest = 'divide', help = 'number of enhancer files run in a same time', metavar = '<divide>',default=0)
     add_species_option(group_input)
     add_tf_option(group_input)
-    add_processes_option(group_input)
+    # add_processes_option(group_input)
     add_norm_option(group_input)
         
     # group for output files
@@ -118,7 +118,7 @@ def add_profile_parser( subparsers ):
     #group_input.add_argument( '-s', action = 'store', type = str,dest = 'divide', help = 'number of enhancer files run in a same time', metavar = '<divide>',default=5)
     add_species_option(group_input)
     add_tf_option(group_input)
-    add_processes_option(group_input)
+    # add_processes_option(group_input)
     add_norm_option(group_input)
     
     # group for output files

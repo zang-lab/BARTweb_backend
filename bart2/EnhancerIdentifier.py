@@ -18,59 +18,35 @@ def read_sample_list(fname):
     fp.close()
     return sl,scores
 
-# rank np vector 
-def rank(a):
-    """ Rank from low to high """
-    temp = a.argsort()
-    rank = np.empty(len(a), int)
-    rank[temp] = np.arange(len(a))
-    return rank
-
 def median_norm(X):
     col_median = np.median(X,0)
     for i in range(X.shape[1]):
         X[:,i] = X[:,i] - col_median[i]
     return X
 
-def quantile_norm(X):
-    """ input: numpy array data_points x features """
-    Y = np.copy(X)
-    Y.sort(0)
-    row_mu = Y.mean(1)
-    for i in range(Y.shape[1]):
-        r = rank(X[:,i])
-        X[r,i] = row_mu
-    return X
-
-def read_table(tffile,col=1,ctype=int):
-    fp = open(tffile)
-    l = []
-    for line in fp.readlines():
-        f = line.split()
-        l += [ctype(f[col])]
-    return l
-
-def main(samplefile, output_name, UAC_info, UAC_H3K27ac, tffile=None):
+def main(args):
     '''generate cis-regulatory profile from selected H3K27ac samples
 
     Import arguments:
-    - samplefile:     selected samples in *_adaptive_lasso_Info.txt
-    - output_name:       output_dir/output_prefix
-    - UAC_info:       UDHS or UAC bed file
-    - UAC_H3K27ac:    RPKM on H3K27ac signals based on UDHS or UAC
-    - tffile:         for background correction, default: None
+    argparser arguments
 
     Output file:
     Enhancer profile based on UDHS or UAC.
     '''
+    samplefile = args.samplefile
+    output_name = args.name
+    H3K27ac_hdf5 = args.k27achdf5
+
     sample_names,sample_weights = read_sample_list(samplefile)
     sample_names = [i for i in sample_names if re.match('[0-9]',i)] # incase 'start/end/chr' in sample names
     sample_weights = np.array(sample_weights)
     
     DHS_sample_names = [ elem+'_Strength' for elem in sample_names ]
+    print("Selected H3K27ac samples...")
     print(DHS_sample_names)
+
     # read data from RPKM H3K27ac hdf5 file
-    udhs_h5file = tables.open_file( UAC_H3K27ac, driver="H5FD_CORE")    
+    udhs_h5file = tables.open_file(H3K27ac_hdf5, driver="H5FD_CORE")    
     chrom = RPRegress.read_hdf5(udhs_h5file, "chrom")
     start = RPRegress.read_hdf5(udhs_h5file, "start")
     end = RPRegress.read_hdf5(udhs_h5file, "end")
@@ -87,8 +63,7 @@ def main(samplefile, output_name, UAC_info, UAC_H3K27ac, tffile=None):
     udhs_h5file.close()
     DHS = DHS.transpose()
 
-    DHS = np.sqrt(DHS)
-    DHS = median_norm(DHS)
+    DHS = RPRegress.sqrttransform(DHS)
     T = np.dot(DHS,sample_weights) # coef * H3K27ac RPKM signals
 
     out_res = []
@@ -108,7 +83,7 @@ if __name__ == '__main__':
     parser.add_argument( '-s', dest='samplefile', type=str, required=True, help='File that lists informative H3K27ac samples. One sample ID per line.' )
     parser.add_argument( '--k27ac', dest='k27achdf5', type=str, required=True, help='Path for the hdf5 format H3K27ac reads counts in UDHS regions.' )
     parser.add_argument( '-n', dest='name', type=str, required=True, help='Name of study, for output file naming.' )
-    parser.add_argument( '-t', dest='tffile', default=None, required=False, help='Indicators of TF binding at each UDHS sites 0 or 1. For performance evaluation.' )
+    # parser.add_argument( '-t', dest='tffile', default=None, required=False, help='Indicators of TF binding at each UDHS sites 0 or 1. For performance evaluation.' )
     
     args = parser.parse_args()
-    main( args.samplefile, args.name, args.genome, args.k27achdf5, tffile=args.tffile )
+    main(args)

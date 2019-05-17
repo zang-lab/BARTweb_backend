@@ -15,16 +15,14 @@ under the terms of the BSD License.
 
 import os,sys,time
 import json
-import multiprocessing # multiprocessing on dealing with TF datasets
-
-from bart2 import StatTest
+# import multiprocessing # multiprocessing on dealing with TF datasets
 
 def get_tf_file_data(tf_json):
     starttime = time.time()
     with open(tf_json, 'r') as fm:
         tf_file_map = json.load(fm)
     endtime = time.time()
-    print("===loading tf file mapping list: {} seconds".format(endtime-starttime))
+    sys.stdout.write("Loading tf file mapping list: {} seconds \n".format(endtime-starttime))
     return tf_file_map
     
 # 84M memory taken
@@ -33,7 +31,7 @@ def get_matrix_data(overlap_json):
     with open(overlap_json, 'r') as fm:
         matrix_data = json.load(fm)
     endtime = time.time()
-    print("===loading matrix file: {} seconds".format(endtime-starttime))
+    sys.stdout.write("Loading tf matrix file: {} seconds \n ".format(endtime-starttime))
     return matrix_data
 
 def cal_auc_for_all_tfs(args, positions, matrix_data, tf_file_len):
@@ -41,22 +39,20 @@ def cal_auc_for_all_tfs(args, positions, matrix_data, tf_file_len):
     groupsize = 10000   # 2.7M / 10000 = 272 steps
     groups = int(udhs_len/groupsize)
 
-    print('total groups: ' + str(groups))
+    sys.stdout.write('Total groups: {} \n'.format(groups))
 
-    # initialize tf_auc = {TF_a_1: 0.0},
     tf_auc = {} # each tf file auc
     tf_t = {} # each tf file, how many 1s
     for i in range(1, tf_file_len+1): # initiate the axis for each tf file
         tf_t[i] = []
         tf_auc[i] = 0.0
     
-    #TODO: is it possible to use multiprocessing to deal with the data? tf_c_for_each_group?
-    if args.processes:
-        print('--Number of cores will be used: {}\n'.format(args.processes))
-        pool = multiprocessing.Pool(processes=args.processes)
+    #TODO: is it needed to multiprocess the data? tf_t for each group instead of a tf_t_accumulation?
+    # if args.processes:
+    #     sys.stdout.write('--Number of cores will be used: {}\n'.format(args.processes))
+    #     pool = multiprocessing.Pool(processes=args.processes)
 
-
-    print("===parsing data in group size: {}".format(groupsize))
+    sys.stdout.write("Parsing data by group size: {} \n".format(groupsize))
     for group_id in range(groups+1):
         tf_t_cnt = {}
         for i in range(1, tf_file_len+1):
@@ -123,7 +119,7 @@ def cal_auc(args, positions):
     tf_json = args.tffile
     overlap_json = args.tfoverlap
     normfile = args.normfile
-    
+ 
     # in case position index is not 'int' type
     positions = [int(i) for i in positions]
     if len(positions) == 0:
@@ -141,7 +137,7 @@ def cal_auc(args, positions):
         for key in sorted(tf_auc.keys(),key=tf_auc.get,reverse=True):
             tf_file_name = tf_dict[str(key)]
             aucf.write('{}\tAUC = {:.3f}\n'.format(tf_file_name, tf_auc[key]))
-    print('\n--ROC-AUC calculation finished!\n--Results saved in file: {}\n'.format(auc_file))
+    sys.stdout.write('\n--ROC-AUC calculation finished!\n--Results saved in file: {}\n'.format(auc_file))
     return tf_auc, tf_dict
 
 if __name__ == '__main__':
@@ -155,4 +151,4 @@ if __name__ == '__main__':
     output_name = 'test_bart/AR_aupr'
     norm_file = '/nv/vol190/zanglab/wm9tr/software/BART-v1.0.1-py3-full/BART/hg38_library/hg38_MSigDB.dat'
 
-    cal_auc(margefile, tf_json, overlap_json, output_name, norm_file)
+    cal_auc(args, positions)

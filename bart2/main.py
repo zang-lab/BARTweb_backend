@@ -1,10 +1,8 @@
 import os,sys
+from types import SimpleNamespace
 
 # import from package
-from bart2 import OptValidator
-from bart2 import ReadCount
-from bart2 import RPRegress, EnhancerIdentifier
-from bart2 import AUCcalc, StatTest
+from bart2 import OptValidator, ReadCount, RPRegress, EnhancerIdentifier, AUCcalc, StatTest
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ADAPTIVE_LASSO_MAXSAMPLES = 20 # TODO: should we fix it?
@@ -35,10 +33,33 @@ def bart(options):
         species, rp matrix, gene file, refseq TSS, output directory, target gene method, adaptive lasso max sapmle numbers, log transform, square transform, gene symbol or refseqID, gene symbol or not, separate by chrom, sample description file
         '''
         sys.stdout.write("Do adaptive lasso to select informative H3K27ac samples...\n")
+
+        sys.stdout.write("Generate parameters for regression step...\n")
         if options.refseq:
-            RPRegress.main(args.species, args.rp, args.infile, args.tss, args.ofilename, 'target', ADAPTIVE_LASSO_MAXSAMPLES, False, True, 'Gene_Response', False, False, args.desc)
+            rp_args = \
+                SimpleNamespace(genome=args.species, \
+                          histRP=args.rp, \
+                          expr=args.infile, \
+                          sym=args.tss, \
+                          name=args.ofilename, \
+                          maxsamples=ADAPTIVE_LASSO_MAXSAMPLES, \
+                          transform='sqrt', \
+                          exptype="Gene_Response", \
+                          annotation=args.desc)
+            RPRegress.main(rp_args)
         else:
-            RPRegress.main(args.species, args.rp, args.infile, args.tss, args.ofilename, 'target', ADAPTIVE_LASSO_MAXSAMPLES, False, True, 'Gene_Only', True, False, args.desc)
+            rp_args = \
+                SimpleNamespace(genome=args.species, \
+                          histRP=args.rp, \
+                          expr=args.infile, \
+                          sym=args.tss, \
+                          name=args.ofilename, \
+                          maxsamples=ADAPTIVE_LASSO_MAXSAMPLES, \
+                          transform='sqrt', \
+                          exptype="Gene_Only", \
+                          annotation=args.desc)
+            RPRegress.main(rp_args)
+
         regression_info = args.ofilename + '_adaptive_lasso_Info.txt'
         if not os.path.exists(regression_info):
             sys.stderr.write("Error: selecting samples from H3K27ac compendium! \n")
@@ -51,7 +72,14 @@ def bart(options):
         selected samples file, gene file, output directory, species, UDHS, rpkm matrix
         '''
         sys.stdout.write("Generate cis-regulatory profile...\n")
-        EnhancerIdentifier.main(regression_info, args.ofilename, args.dhsfile, args.rpkm)
+
+        sys.stdout.write("Generate parameters for enhancer profile generation...\n")
+        enhancer_args = \
+                SimpleNamespace(samplefile=regression_info, \
+                                name=args.ofilename, \
+                                k27achdf5=args.rpkm)
+        EnhancerIdentifier.main(enhancer_args)
+
         enhancer_profile = args.ofilename + '_enhancer_prediction_lasso.txt'
         if not os.path.exists(enhancer_profile):
             sys.stderr.write("Error: generating enhancer profile! \n")
@@ -71,9 +99,8 @@ def bart(options):
     '''
     Start using revised BART on calculating the AUC score for each TF ChIP-seq dataset
     '''
-    sys.stdout.write("revised BART!...\n")
+    sys.stdout.write("bart2!...\n")
     sys.stdout.write('Prediction starts...\n\nRank all DHS...\n')
-    positions = AUCcalc.get_position_list(enhancer_profile)
     tf_aucs, tf_index = AUCcalc.cal_auc(args, positions)
 
     stat_file = args.ofilename + '_bart_results.txt'

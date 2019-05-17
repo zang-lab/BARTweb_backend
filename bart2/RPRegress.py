@@ -35,10 +35,8 @@ def gene_sym(symfile):
 
     for line in fp:
         f = line.strip().split('\t')
-        #print f
         g = f[3]
         IDs = g.split(':')
-        #print IDs
         if IDs[1] not in symdict:
             symdict[IDs[1]] = [IDs[0], f[0]]
  
@@ -49,12 +47,7 @@ def gene_sym(symfile):
 
     return rsymdict
 
-def scalartransform(x):
-    pcount = 1
-    x = np.log2(x+pcount)
-    return x
-
-def transform(x):
+def logtransform(x):
     xt = np.array(x)
     pcount = 1
     xt += pcount 
@@ -62,27 +55,11 @@ def transform(x):
     x = np.log2(xt) - np.log2(med)
     return x
 
-def sqrttansform(x):
+def sqrttransform(x):
     xt = np.array(x)
     med = np.median( xt,0 )
     x = np.sqrt(xt) - np.sqrt(med)
     return x
-#====================================================================
-
-def read_hdf5_ori( h5file, sample_names ):
-    """ Apply motif stat function to all data in motif_file_name. 
-    Data in numpy array val corresponds to idx entries. If idx if None all entries are used.""" 
-    X = None
-    for elem in sample_names:
-        a = h5file.get_node("/", elem )
-        m = a.read()
-        if X is None:
-            X = m
-        else:
-            X = numpy.vstack((X,m))
-
-    X1 = X.transpose()
-    return X
 
 def read_hdf5( h5file, sample_name):
     """ Apply motif stat function to all data in motif_file_name. 
@@ -90,7 +67,6 @@ def read_hdf5( h5file, sample_name):
     a = h5file.get_node("/", sample_name )
     m = a.read()
     return m
-
 
 def getSampleNames_hdf5(h5file):
     samplenames = []
@@ -155,7 +131,7 @@ def readregpotfiles(sym,genome,samplenames,h5file):
     return z
 
 
-def read_genelistOnly(sym, fname, index, gname2, sepby_chrom=True):
+def read_genelistOnly(sym, fname, index, exptype):
     
     status = np.zeros( len(index) )
     genenames = np.ndarray(shape=(len(index)),dtype=object)
@@ -173,7 +149,7 @@ def read_genelistOnly(sym, fname, index, gname2, sepby_chrom=True):
     print(allgenes[0:20])
 
     for ag in allgenes:
-        if gname2:
+        if exptype == 'Gene_Only':
             try:
                 i = index[sym[ag][0]]
                 if sym[ag][1] in train_chroms:
@@ -226,114 +202,6 @@ def dataset_annotation(annotationf):
             except:
                 ann[ID] = 'NA'
     return ann
-
-
-def regress(x, y, train_index, test_index, samplenames, name, change, maxsamples,sepby_chrom, ann, genenames):
-    print(x)
-    fout = open(name+'_auc_record.txt','w')
-    fout2 = open(name + '_predited_scores.txt','w')
-    print(x.shape)
-    print(y.shape)
-
-    cross_validate_flag = True
-    record   = []
-    cvrecord = []
-
-    col_list   = samplenames
-    maxsamples = min( len(col_list), maxsamples )
-
-    # forward step-wise regression - include the samples that produce the best cross validation results
-    for j in range(maxsamples):
-        print ('first j = %s'%str(j))
-        if cross_validate_flag:
-            cvscore = []
-
-            for i,elem in enumerate(col_list):
-                if i not in record:
-                    #print ('second i = %s'%str(i))
-                    trial = record + [i]
-                    rand_idx = list(range(x.shape[0]))
-                    if not sepby_chrom:
-                        # select random subset for trial and testing
-                        random.shuffle( rand_idx )
-                        xt = x[:,trial]
-                        xt = xt[rand_idx,:]
-                        yt = y[rand_idx] 
-                        xt.reshape( (x.shape[0],len(trial))) #???
-                        X_train, X_test, y_train, y_test = model_selection.train_test_split( xt, yt )
-                        LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01)
-                        #LR_l1.fit(X_train,y_train)
-                        #cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
-                        cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, xt, yt, scoring='roc_auc', cv=5 ) ) ]
-                    else:
-                        xt = x[:,trial]
-                        yt = y
-                        X_train = xt[train_index,:]
-                        y_train = yt[train_index]
-                        
-                        X_train.reshape((X_train.shape[0],len(trial)))
-                        LR_l1 = linear_model.LogisticRegression(penalty='l1', tol=0.01)
-                        LR_l1.fit(X_train,y_train)
-                        cvscore += [ np.mean( model_selection.cross_val_score( LR_l1, X_train, y_train, scoring='roc_auc', cv=5 ) ) ]
-                else:
-                    cvscore += [0]
-                    continue
-
-            #record the auc values when do the first regression       
-            if j == 0:
-                for m in range(len(col_list)):
-                    fout.write(col_list[m] + '\t' + str(cvscore[m]) + '\n')
-            fout.close()
-
-            k = np.argmax(cvscore) 
-            cvrecord += [max(cvscore)]
-            record += [k]
-            print (j,'record',record)
-
-    if sepby_chrom:
-        xt = x[:,record]
-        X_test = xt[test_index,:] 
-        y_test = y[test_index]
-        LR_l1.fit(X_test,y_test)
-        y_test_hat = LR_l1.predict_log_proba(X_test)
-        yhat = LR_l1.predict_log_proba(xt)
-        fpr, tpr, thresholds = metrics.roc_curve(y_test, y_test_hat[:,1], pos_label=1)
-        auc = metrics.auc(fpr,tpr)
-        print("==============")
-    else:
-        xt = x[:,record]
-        xt.reshape( (xt.shape[0],len(record)) )
-        LR_l1.fit(xt,y)
-        yhat = LR_l1.predict_log_proba(xt)
-        fpr, tpr, thresholds = metrics.roc_curve(y, yhat[:,1], pos_label=1)
-        auc = metrics.auc(fpr,tpr)
-        
-        for l in range(len(y)):
-            fout2.write(genenames[l] + '\t' + str(y[l]) + '\t'  + str(yhat[l,1]) + '\n')
-        fout2.close()
-
-        plt.plot(fpr,tpr)
-        plt.xlabel('true positive rate')
-        plt.ylabel('false positive rate')
-        plt.title('ROC curve for gene prediction')
-        plt.savefig('%s_roc.png'%name)
-        plt.show()
-        print("==============")
-
-    outf = open(name + '_' + change + '_regressionInfo.txt','w')
-    for k,elem in enumerate(record):
-        dataID = col_list[elem].split('_')[0]
-        if dataID in list(ann.keys()):
-            annInfo = ann[dataID]
-        else:
-            annInfo = ['NA','NA','NA']
-
-        print(dataID, cvrecord[k], LR_l1.coef_[0,k], annInfo)
-        outf.write(dataID + '\t' + str(cvrecord[k]) + '\t' + str(LR_l1.coef_[0,k]) + '\t' + '\t'.join(annInfo) + '\n')
-    outf.write('AUC = %s'%(str(round(auc,3))))
-    outf.close()   
-
-    return LR_l1.coef_, [ col_list[i]  for i in record ], yhat, record
 
 def lasso_test(x,y):
     # given x,y, return auc score
@@ -401,6 +269,9 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     n_lasso_iterations = 10
     weights = np.ones(n_features)
     selected_features = n_features
+    
+    print('Run adaptive lasso for 10 rounds...')
+    print('Round, Alpha, Features number')
     for k in range(n_lasso_iterations):
         if selected_features >maxsamples: 
             alpha=0.02
@@ -409,10 +280,11 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
         X_w = x / weights
         #alpha,best_cvs = best_alpha(X_w,y) # TODO: if you need to select best alpha for each step later
         #alpha = 0.1
-        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01, fit_intercept=True, C=alpha, random_state=2019, solver="liblinear")  # set fixed seed and default server
+
+        # set fixed seed and default solver
+        estimator = linear_model.LogisticRegression(penalty='l1', tol=0.01, fit_intercept=True, C=alpha, random_state=2019, solver="liblinear")
         estimator.fit(X_w,y)
         coef_ = estimator.coef_/weights
-        # print(coef_)
         weights = gprime(coef_)
         selected_features = len([i for i in coef_[0] if i !=0])
         print(k,alpha,selected_features)
@@ -447,7 +319,25 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     outf.write('selected_features = {}\n'.format(selected_features))
     return auc,selected_features
 
-def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, sqrttrans, exptype,gname2, sepby_chrom, annotation):
+def main(args):
+    '''
+    Input arguments from command line.
+
+    '''
+    # read all parameters from arguments
+    gxfile = args.expr # input gene symbols/refseqID
+    name = args.name # output name
+    exptype = args.exptype
+
+    genome = args.genome # species
+    symfile = args.sym
+    annotation = args.annotation
+
+    rp_hdf5 = args.histRP
+    transform = args.transform
+
+    maxsamples = args.maxsamples
+
     # TODO: symfile is the refseqID annotation file, change to gene symbol file?
     sym = gene_sym(symfile) # {"resfseq": {"gene_symbol", "chr"}}
 
@@ -456,34 +346,23 @@ def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, 
     z   = readregpotfiles(sym,genome,samplenames,h5file)
     h5file.close()
     
-    if logtrans:
-        #z.x = scalartransform(z.x)
-        z.x = transform(z.x)
-    if sqrttrans:
-        z.x = sqrttansform(z.x)
+    if transform == 'log':
+        z.x = logtransform(z.x)
+    if transform == 'sqrt':
+        z.x = sqrttransform(z.x)
 
-    (genenames,z.y,train_index,test_index) = read_genelistOnly(sym, gxfile, z.index, gname2, sepby_chrom)
+    (genenames,z.y,train_index,test_index) = read_genelistOnly(sym, gxfile, z.index, exptype)
 
-    if change == 'down':
-        print('Do regrssion with DOWN genes')
-        y = 1*( z.y == DOWN )
-    elif change == 'up':
-        print('Do regrssion with UP genes')
-        y = 1*( z.y == UP )
-    elif change == 'target':
-        print('Do regrssion with TARGET genes')
-        y = 1*( z.y == TARGET )
-    else:
-        print("Please choose the specfic direction, UP or DOWN or TARGET.")
-        sys.exit()
-    
+    print('Do regrssion with TARGET genes...')
+    y = 1*( z.y == TARGET )
+
     x = z.x[:,:-5] # remove the last few columns: refseq, start, chr, etc...
+    print("Adaptive lasso RP matrix shape...")
+    print(np.shape(x))
     ann = dataset_annotation(annotation)
-    #coef,rprecord,yhat,record = regress( x, y, train_index, test_index, z.rpfiles, name, change, maxsamples, sepby_chrom, ann, genenames )
-    #x = z.x#[:,:20]
-    #z.rpfiles = z.rpfiles[:20]
-
     auc,selected_features = adaptive_lasso(x,y,z.rpfiles,name,maxsamples,ann,genenames)
+
+    print("Adaptive lasso regression AUC score and selected features...")
     print(auc)
     print(selected_features)
     
@@ -491,24 +370,31 @@ def main( genome, rp_hdf5, gxfile, symfile, name, change, maxsamples, logtrans, 
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(description="""Regression of regulatory potential to gene expression changes.""")
+        # related to input file type
         parser.add_argument( '-e','--expr', dest='expr', required = True, type = str, help = 'The related differential expression file')
-        parser.add_argument( '--exptype', dest='exptype',required = True, choices=['Gene_Response','Gene_Only'], type = str, help = 'Gene_Response includes 2 columns, one is the geneID, and the other\
-                                             is 1/0, 1 for target and 0 for un-target; Gene_Only includes 1 column, only the gene list of the targets. Only official gene symbol or \
-                                             refseqID are allowd for the geneID.')
-        parser.add_argument( '--gname2', dest='gname2', default=False, action='store_true', help = 'If this switch is on, gene or transcript IDs in files given through -e will be considered as official gene symbols, otherwise, it is RefSeqID, DEFAULT=FALSE')
-        parser.add_argument( '-r','--historicalRP', dest='histRP', required = True, type = str, help = 'The file with hdf5 format which contain the H3K27ac RP information')
-        parser.add_argument( '-n','--name', dest='name',required = True, type = str, help = 'The prefix of the output names')
-        parser.add_argument( '-g','--genome', dest="genome", type=str, default='hg38', choices=['mm9','hg19','hg38','mm10'], required=False, help='genome')
-        parser.add_argument( '--maxsamples', dest='maxsamples',  type=int, default=20, required=False, help='Maximum number of samples to include in regression model.' )
-        parser.add_argument( '-l', '--logtrans', dest='logtrans',  default=False,  action='store_true', help='Use log transformation on regulatory potential (default is do nothing), this is complementary with -s, --sqrttrans.' )
-        parser.add_argument( '-s', '--sqrttrans', dest='sqrttrans',  default=False,  action='store_true', help='Use sqrt transformation on regulatory potential (default is do nothing). this is complementary with -l, --logtrans.' )
-        parser.add_argument( '-m', dest='sym', type=str, required=True, help='refseqTSS is six columns: <chromosome name> <TSS> <TSS+1> <refseq:genesymbok> <score> <strand>')
-        # parser.add_argument( '-m', dest='sym', type=str, required=True, help='genesymbolTSS is six columns: <chromosome name> <TSS-1> <TSS+1> <genesymbol> <score> <strand>')
-        parser.add_argument( '--sc', dest='sepby_chrom',  default=False,  action='store_true', help='Whether to seperate chroms to do cross validation, default = False' )
+        parser.add_argument( '--exptype', dest='exptype', required = True, choices=['Gene_Response','Gene_Only'], type = str, \
+            help = 'Gene_Response includes 2 columns, one is the geneID, and the other is 1/0, 1 for target and 0 for un-target; \
+                    Gene_Only includes 1 column, only the gene list of the targets. \
+                    Only official gene symbol or refseqID are allowd for the geneID.')
+
+        parser.add_argument( '-r','--historicalRP', dest='histRP', required = True, type = str, \
+                help = 'The file with hdf5 format which contain the H3K27ac RP information')
+        # transform method
+        parser.add_argument('-t', '--transform', dest="transform", type=str, default='sqrt', choices=['sqrt', 'log'], required=True, \
+                help='Use sqrt transform or log transform on RP ')
         parser.add_argument( '-a', dest='annotation', required=True,  type=str, help='The annotation file for each dataset' )
 
+        parser.add_argument( '-m', dest='sym', type=str, required=True, help='refseqTSS is six columns: <chromosome name> <TSS> <TSS+1> <refseq:genesymbok> <score> <strand>')
+        # parser.add_argument( '-m', dest='sym', type=str, required=True, help='genesymbolTSS is six columns: <chromosome name> <TSS-1> <TSS+1> <genesymbol> <score> <strand>')
+        parser.add_argument( '-g','--genome', dest="genome", type=str, default='hg38', choices=['mm9','hg19','hg38','mm10'], required=False, help='genome')
+        parser.add_argument( '--maxsamples', dest='maxsamples',  type=int, default=20, required=False, \
+                help='Maximum number of samples to include in regression model.' )
+        parser.add_argument( '-a', dest='annotation', required=True,  type=str, help='The annotation file for each dataset' )
+
+        parser.add_argument( '-n','--name', dest='name',required = True, type = str, help = 'The prefix of the output names')
+
         args = parser.parse_args()
-        main( args.genome, args.histRP, args.expr, args.sym, args.name, 'target', args.maxsamples, args.logtrans, args.sqrttrans, args.exptype, args.gname2, args.sepby_chrom, args.annotation )
+        main(args)
 
     except KeyboardInterrupt:
         sys.stderr.write("User interrupted me!\n")
