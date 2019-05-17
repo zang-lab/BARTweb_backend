@@ -183,7 +183,7 @@ def read_genelistOnly(sym, fname, index, exptype):
                 continue
 
     print('file: %s\ttarget: %d\tunchanged: %d\n' % ( fname, sum( status == TARGET ), sum( status == UNCHANGED ) ))
-    print(genenames[0:20])
+    # print(genenames[0:20])
     return (genenames, status,train_index,test_index)  
 
 def dataset_annotation(annotationf):
@@ -271,7 +271,7 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
     selected_features = n_features
     
     print('Run adaptive lasso for 10 rounds...')
-    print('Round, Alpha, Features number')
+    print('Round, Alpha, Features number ')
     for k in range(n_lasso_iterations):
         if selected_features >maxsamples: 
             alpha=0.02
@@ -287,7 +287,7 @@ def adaptive_lasso(x,y,samplefiles,name,maxsamples,ann,genenames):
         coef_ = estimator.coef_/weights
         weights = gprime(coef_)
         selected_features = len([i for i in coef_[0] if i !=0])
-        print(k,alpha,selected_features)
+        print('{}, {}, {}'.format(k,alpha,selected_features))
 
     rand_idx = list(range(x.shape[0]))
     random.shuffle( rand_idx )
@@ -353,20 +353,22 @@ def main(args):
 
     (genenames,z.y,train_index,test_index) = read_genelistOnly(sym, gxfile, z.index, exptype)
 
+    sys.stdout.flush()
     print('Do regrssion with TARGET genes...')
     y = 1*( z.y == TARGET )
 
     x = z.x[:,:-5] # remove the last few columns: refseq, start, chr, etc...
     print("Adaptive lasso RP matrix shape...")
-    print(np.shape(x))
+    print("{}\n".format(np.shape(x)))
     ann = dataset_annotation(annotation)
     auc,selected_features = adaptive_lasso(x,y,z.rpfiles,name,maxsamples,ann,genenames)
+    sys.stdout.flush()
 
     print("Adaptive lasso regression AUC score and selected features...")
     print(auc)
     print(selected_features)
-    
-    
+    sys.stdout.flush()
+ 
 if __name__ == "__main__":
     try:
         parser = argparse.ArgumentParser(description="""Regression of regulatory potential to gene expression changes.""")

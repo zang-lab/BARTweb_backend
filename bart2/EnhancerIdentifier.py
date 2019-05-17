@@ -44,6 +44,7 @@ def main(args):
     DHS_sample_names = [ elem+'_Strength' for elem in sample_names ]
     print("Selected H3K27ac samples...")
     print(DHS_sample_names)
+    sys.stdout.flush()
 
     # read data from RPKM H3K27ac hdf5 file
     udhs_h5file = tables.open_file(H3K27ac_hdf5, driver="H5FD_CORE")    

@@ -53,6 +53,7 @@ def cal_auc_for_all_tfs(args, positions, matrix_data, tf_file_len):
     #     pool = multiprocessing.Pool(processes=args.processes)
 
     sys.stdout.write("Parsing data by group size: {} \n".format(groupsize))
+    sys.stdout.flush()
     for group_id in range(groups+1):
         tf_t_cnt = {}
         for i in range(1, tf_file_len+1):
