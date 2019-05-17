@@ -3,7 +3,7 @@ import tables
 import time,re
 import numpy as np
 
-from revised_bart import RPRegress
+from bart2 import RPRegress
 
 # read in H3K27ac sample IDs
 def read_sample_list(fname):

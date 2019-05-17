@@ -17,7 +17,7 @@ import os,sys,time
 import json
 import multiprocessing # multiprocessing on dealing with TF datasets
 
-from revised_bart import StatTest
+from bart2 import StatTest
 
 def get_tf_file_data(tf_json):
     starttime = time.time()

@@ -14,7 +14,7 @@ under the terms of the BSD License.
 
 import os,re
 import bisect
-from revised_bart import IOparser
+from bart2 import IOparser
 
 plus = re.compile('\+')
 minus = re.compile('\-')

@@ -1,10 +1,10 @@
 import os,sys
 
 # import from package
-from revised_bart import OptValidator
-from revised_bart import ReadCount
-from revised_bart import RPRegress, EnhancerIdentifier
-from revised_bart import AUCcalc, StatTest
+from bart2 import OptValidator
+from bart2 import ReadCount
+from bart2 import RPRegress, EnhancerIdentifier
+from bart2 import AUCcalc, StatTest
 
 script_dir = os.path.dirname(os.path.realpath(__file__))
 ADAPTIVE_LASSO_MAXSAMPLES = 20 # TODO: should we fix it?

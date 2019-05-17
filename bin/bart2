@@ -19,11 +19,12 @@ import configparser
 script_dir = os.path.dirname(os.path.realpath(__file__))
 
 try:
-    import revised_bart
+    import bart2
 except:
     sys.path.append(os.path.join(script_dir, "../"))
-    import revised_bart
-
+    import bart2
+from bart2.main import bart
+bart2_version = bart2.__version__
 
 def prepare_argparser():
     """
@@ -37,7 +38,7 @@ def prepare_argparser():
     epilog = "For command line options of each command, type: %(prog)s COMMAND -h"
     
     argparser = argparse.ArgumentParser( description = description, epilog = epilog )
-    argparser.add_argument("-v","--version", action="version", version="%(prog)s\t"+revised_bart.__version__)
+    argparser.add_argument("-v","--version", action="version", version="%(prog)s\t"+bart2_version)
     subparsers = argparser.add_subparsers( dest = 'subcommand_name' )
     
     #command for 'geneset'
@@ -141,7 +142,6 @@ def main():
         exit(1)  
 
     sys.stdout.write('\nBART -- Binding Analysis for Regulation of Transcription\n\n')
-    from revised_bart.main import bart
     bart(args)
 
 if __name__=='__main__':
