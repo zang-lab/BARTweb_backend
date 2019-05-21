@@ -364,6 +364,8 @@ def main(args):
     try:
         auc,selected_features = adaptive_lasso(x,y,z.rpfiles,name,maxsamples,ann,genenames)
     except:
+        pass
+    finally:
         sys.stderr.write("""\nERROR: bart2 exited with errors!
 Please check whether you selected the correct species or uploaded the correct gene list!\n""")
         sys.exit(1)
