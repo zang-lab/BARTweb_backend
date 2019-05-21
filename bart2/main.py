@@ -15,15 +15,15 @@ def bart(options):
         os.makedirs(args.outdir, exist_ok=True)
     except:
         sys.stderr.write('Output directory: {} could not be created. \n'.format(args.outdir))
-        sys.exit(0)
+        sys.exit(1)
     sys.stdout.write("Output directory will be {} \n".format(args.outdir))
     sys.stdout.write("Output file prefix will be {} \n".format(args.ofilename))
-    sys.stdout.flush()
 
     if args.species == 'hg38':
         sys.stdout.write("Start prediction on hg38...\n")
     elif args.species == 'mm10':
         sys.stdout.write("Start prediction on mm10...\n")
+    sys.stdout.flush()
 
     # bart geneset [-h] <-i genelist.txt> [--refseq] <-s species> [-t target] [-p processes] [--outdir] [options]
     if args.subcommand_name == 'geneset':
@@ -65,7 +65,7 @@ def bart(options):
         regression_info = args.ofilename + '_adaptive_lasso_Info.txt'
         if not os.path.exists(regression_info):
             sys.stderr.write("Error: selecting samples from H3K27ac compendium! \n")
-            sys.exit(0)
+            sys.exit(1)
 
         '''
         Generate cis-regulatory profile based on adaptive lasso model weights multiply H3K27ac samples RPKM signal.
@@ -87,7 +87,7 @@ def bart(options):
         enhancer_profile = args.ofilename + '_enhancer_prediction_lasso.txt'
         if not os.path.exists(enhancer_profile):
             sys.stderr.write("Error: generating enhancer profile! \n")
-            sys.exit(0)
+            sys.exit(1)
 
         # get ranked score UDHS positions from enhancer profile
         positions = AUCcalc.get_position_list(enhancer_profile)
@@ -95,10 +95,10 @@ def bart(options):
     # bart profile [-h] <-i ChIP-seq profile> <-f format> <-s species> [-t target] [-p processes] [--outdir] [options]
     elif args.subcommand_name == 'profile':
         sys.stdout.write('Start mapping the {} file...\n'.format(args.format.upper()))
+        sys.stdout.flush()
         counting = ReadCount.read_count_on_DHS(args)
         # get ranked score UDHS positions from read count
         positions = sorted(counting.keys(),key=counting.get,reverse=True)
-        sys.stdout.flush()
 
 
     '''
@@ -113,5 +113,5 @@ def bart(options):
     stat_file = args.ofilename + '_bart_results.txt'
     StatTest.stat_test(tf_aucs, tf_index, stat_file, args.normfile)
     sys.stdout.flush()
-    sys.stdout.write("BART job finished successfully!\n")
+    sys.stdout.write("Congratulations! BART job finished successfully!\n")
 

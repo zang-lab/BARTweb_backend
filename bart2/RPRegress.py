@@ -361,8 +361,12 @@ def main(args):
     print("Adaptive lasso RP matrix shape...")
     print("{}\n".format(np.shape(x)))
     ann = dataset_annotation(annotation)
-    auc,selected_features = adaptive_lasso(x,y,z.rpfiles,name,maxsamples,ann,genenames)
-    sys.stdout.flush()
+    try:
+        auc,selected_features = adaptive_lasso(x,y,z.rpfiles,name,maxsamples,ann,genenames)
+    except:
+        sys.stderr.write("""\nERROR: bart2 exited with errors!
+Please check whether you selected the correct species or uploaded the correct gene list!\n""")
+        sys.exit(1)
 
     print("Adaptive lasso regression AUC score and selected features...")
     print(auc)

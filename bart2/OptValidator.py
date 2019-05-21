@@ -25,7 +25,7 @@ def conf_validate():
     config_path = os.path.join(script_dir, 'bart.conf')
     if not os.path.exists(config_path):
         sys.stderr.write("CRITICAL: bart.conf does not exist in {}!\n".format(script_dir))
-        sys.exit(0)
+        sys.exit(1)
 
     config.read(config_path)
     return config
@@ -62,7 +62,6 @@ def opt_validate(options):
             data_dir = os.path.join(script_dir, 'hg38_library')
         print("Library directory:" + data_dir)
 
-        options.desc = data_dir+os.sep+'SupTable1_HumanH3K27ac_Description.dat'
         # file for standardization
         if options.subcommand_name == 'geneset':
             options.normfile = data_dir+os.sep+'hg38_MSigDB.dat'
@@ -77,7 +76,6 @@ def opt_validate(options):
             data_dir = os.path.join(script_dir, 'mm10_library')
         print("Library directory:" + data_dir)
         
-        options.desc = data_dir+os.sep+'SupTable1_MouseH3K27ac_Description.dat'
         # file for standardization
         if options.subcommand_name == 'geneset':
             options.normfile = os.path.join(data_dir, 'mm10_H3K27ac.dat')
@@ -89,6 +87,7 @@ def opt_validate(options):
     options.rpkm = data_dir+os.sep+options.species+'_UDHS_H3K27ac.h5'
     options.tss = data_dir+os.sep+options.species+'_refseq_TSS.bed'
     options.dhsfile = data_dir+os.sep+options.species+'_UDHS.bed'
+    options.desc = data_dir+os.sep+options.species+'_H3K27ac_Description.dat'
 
     # used for BART AUC calculation
     options.tffile = data_dir+os.sep+options.species+'_TF_file.json'

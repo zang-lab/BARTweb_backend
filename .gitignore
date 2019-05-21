@@ -25,6 +25,9 @@ var/
 
 *.gz
 
+# bart testdata
+testdata/
+
 # bart log file
 log/
 
