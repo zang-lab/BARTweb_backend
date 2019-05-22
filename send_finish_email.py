@@ -25,8 +25,12 @@ def get_config(user_path):
     return user_data
 
 def send_email(user_email,title,message):
-    HOST_ADDRESS = "zanglab.service@gmail.com" #os.environ['ZangLAb_HOST_ADDRESS'] remember to check if envirmental variable exist and log it
-    PASSWORD = "ZangLab2018"
+    HOST_ADDRESS = os.environ.get("HOST_ADDRESS")
+    PASSWORD = os.environ.get("PASSWORD")
+
+    if HOST_ADDRESS == None or PASSWORD == None:
+        return False, "errors in getting email address and password from environment.."
+
     msg = MIMEMultipart()
     msg['From'] = HOST_ADDRESS
     msg['To'] = user_email

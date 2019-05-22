@@ -9,10 +9,11 @@
 # Change the directory to save in the same folder
 BART_dir=$PWD
 LOG_dir=$BART_dir/log
+mkdir -p $LOG_dir
 
 # Check the queue for message count.
 QCOUNT=`/home/wm9tr/miniconda3/bin/aws sqs get-queue-attributes \
-  --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web-processing" \
+  --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
   --attribute-names "ApproximateNumberOfMessages" | \
   /home/wm9tr/bin/jq -r .Attributes.ApproximateNumberOfMessages`
 
@@ -24,7 +25,7 @@ if [ "$QCOUNT" -gt 0 ]; then
   RAW=`/home/wm9tr/miniconda3/bin/aws sqs receive-message \
     --message-attribute-names "submissionkey" \
     --max-number-of-messages 1 \
-    --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web-processing" \
+    --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
     --wait-time-seconds 20`;
 
   # The $DIR variable is the name of your submissionkey
@@ -37,7 +38,7 @@ if [ "$QCOUNT" -gt 0 ]; then
   RECEIPTHANDLE=`echo $RAW | /home/wm9tr/bin/jq -r .Messages[0].ReceiptHandle`;
   echo $RECEIPTHANDLE >> $LOG_dir/aws_queue.log;
   /home/wm9tr/miniconda3/bin/aws sqs delete-message \
-    --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web-processing" \
+    --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
     --receipt-handle "$RECEIPTHANDLE";  
 
 else
