@@ -12,6 +12,9 @@ LOG_dir=$BART_dir/log
 mkdir -p $LOG_dir
 
 # Check the queue for message count.
+# /usr/local/bin/aws resent with installation of awscli
+# queue-url match with frontend send_sqs_message
+# /usr/bin/jq decrypt the aws message to retrive the count
 QCOUNT=`/usr/local/bin/aws sqs get-queue-attributes \
   --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
   --attribute-names "ApproximateNumberOfMessages" | \
@@ -22,6 +25,8 @@ if [ "$QCOUNT" -gt 0 ]; then
   echo $current_date_time >> $LOG_dir/aws_queue.log
   echo $QCOUNT >> $LOG_dir/aws_queue.log
   # Get a message from the queue if there is more than 0 message
+  # Ask Neal about "submissionkey" not matching with "submission" on front end
+  # hold the key for 20 seconds
   RAW=`/usr/local/bin/aws sqs receive-message \
     --message-attribute-names "submissionkey" \
     --max-number-of-messages 1 \

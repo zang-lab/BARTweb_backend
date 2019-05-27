@@ -50,6 +50,8 @@ def check_queue(user_queue, user_key):
         user_config_data = {}
         with open(user_config_file, 'r') as fopen:
             user_config_data = yaml.load(fopen)
+        # Remember that SQS might send us muitiple messages of the same key, might need to confirm we have 
+        # FIFO or check is the job has been retrived with status in user_config
         if 'status' in user_config_data:
             return
 
