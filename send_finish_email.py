@@ -25,8 +25,10 @@ def get_config(user_path):
     return user_data
 
 def send_email(user_email,title,message):
-    HOST_ADDRESS = os.environ.get("HOST_ADDRESS")
-    PASSWORD = os.environ.get("PASSWORD")
+    #HOST_ADDRESS = os.environ.get("HOST_ADDRESS")
+    #PASSWORD = os.environ.get("PASSWORD")
+    HOST_ADDRESS = 'zanglab.service@gmail.com'
+    PASSWORD = 'ZangLab2018'
 
     if HOST_ADDRESS == None or PASSWORD == None:
         return False, "errors in getting email address and password from environment.."
@@ -71,6 +73,12 @@ Please get the results through this link: {}
 
         # BART ends with error
         else:
+            #write to ymal to informe the unsuccessful bart run
+            user_data['error'] = True
+            yaml_path = os.path.join(user_data['user_path'], 'user.config')
+            with open(yaml_path,'w') as fopen:
+                yaml.safe_dump(user_data, fopen, encoding='utf-8', allow_unicode=True, default_flow_style=False)
+            logger.info("Bart run failed. writing to config")
             message_body = '''
 Unfortunately, your BART job ends with errors.
 
@@ -115,7 +123,7 @@ def if_success(user_path,dataType):
             done = True
 
     # for ChIP-seq input
-    if dataType == 'ChIP-seq':
+    if dataType == 'ChIP-seq' or dataType == 'regions':
         for file in files:
             if is_zero(os.path.join(bart_output_dir, file)):
                 continue

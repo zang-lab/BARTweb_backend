@@ -31,4 +31,4 @@ RUN chmod -R 775 log
 
 #ENTRYPOINT ["sh"]
 #CMD ["run.sh"]
-CMD ["check.sh"]
+#CMD ["check.sh"]
