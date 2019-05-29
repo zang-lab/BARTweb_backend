@@ -24,7 +24,7 @@ hdr.setLevel(logging.DEBUG) #level at debug, which output debug info and error i
 # RotatingFileHandler
 ## Set log dir
 abs_path = os.path.dirname(os.path.abspath(__file__))
-log_dir_path = abs_path + '/log'
+log_dir_path = abs_path + '/usercase/log'
 if not os.path.exists(log_dir_path):
     os.makedirs(log_dir_path)
 
