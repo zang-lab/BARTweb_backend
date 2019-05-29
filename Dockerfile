@@ -25,7 +25,7 @@ WORKDIR /BARTweb
 
 # give docker permission to write log files
 RUN mkdir -p log
-RUN touch log/bartweb_backend.log
+#RUN touch usercase/log/bartweb_backend.log
 RUN chown -R www-data:www-data log
 RUN chmod -R 775 log
 

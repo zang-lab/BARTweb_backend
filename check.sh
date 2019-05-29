@@ -8,7 +8,7 @@
 
 # Change the directory to save in the same folder
 BART_dir=$PWD
-LOG_dir=$BART_dir/log
+LOG_dir=$BART_dir/usercase/log
 mkdir -p $LOG_dir
 
 # Check the queue for message count.
