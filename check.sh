@@ -28,14 +28,14 @@ if [ "$QCOUNT" -gt 0 ]; then
   # Ask Neal about "submissionkey" not matching with "submission" on front end
   # hold the key for 20 seconds
   RAW=`/usr/local/bin/aws sqs receive-message \
-    --message-attribute-names "submissionkey" \
+    --message-attribute-names "submission" \
     --max-number-of-messages 1 \
     --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
     --wait-time-seconds 20`;
 
   echo $RAW >> $LOG_dir/aws_queue.log 2>&1;
   # The $DIR variable is the name of your submissionkey
-  DIR=`echo $RAW | /usr/bin/jq -r .Messages[0].MessageAttributes.submissionkey.StringValue`;
+  DIR=`echo $RAW | /usr/bin/jq -r .Messages[0].MessageAttributes.submission.StringValue`;
   attr=`echo $RAW | /usr/bin/jq -r .Messages[0].MessageAttributes`;
   echo $attr >> $LOG_dir/aws_queue.log 2>&1;
   echo $DIR >> $LOG_dir/aws_queue.log 2>&1;
