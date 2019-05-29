@@ -33,9 +33,10 @@ if [ "$QCOUNT" -gt 0 ]; then
     --queue-url "https://sqs.us-east-1.amazonaws.com/474683445819/bart-web2" \
     --wait-time-seconds 20`;
 
+  echo $RAW >> $LOG_dir/aws_queue.log 2>&1;
   # The $DIR variable is the name of your submissionkey
   DIR=`echo $RAW | /usr/bin/jq -r .Messages[0].MessageAttributes.submissionkey.StringValue`;
-  echo DIR >> $LOG_dir/aws_queue.log 2>&1;
+  echo $DIR >> $LOG_dir/aws_queue.log 2>&1;
   # execute the trigger.py
   /usr/bin/python3 $BART_dir/trigger.py $DIR >> $LOG_dir/aws_queue.log 2>&1;
   
