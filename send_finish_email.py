@@ -65,7 +65,7 @@ def send_email_message(user_data):
 Congratulations! Your BART job is done!
 
 Please get the results through this link: {}
-'''.format('http://bartweb.org/result?user_key='+user_key)
+'''.format('http://bartweb2.uvadcos.io/result?user_key='+user_key)
             title = 'BART result'
             return_flag,return_message = send_email(email,title,message_body)
 
@@ -82,7 +82,7 @@ Unfortunately, your BART job ends with errors.
 
 Please check whether you chose the correct species or uploaded the required format file.
 
-Or reach us at wm9tr@virginia.edu with your key: {}
+Or reach us at yz4hc@virginia.edu with your key: {}
 
 '''.format(user_key)
             title = 'BART error'
