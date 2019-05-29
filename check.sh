@@ -35,7 +35,7 @@ if [ "$QCOUNT" -gt 0 ]; then
 
   # The $DIR variable is the name of your submissionkey
   DIR=`echo $RAW | /usr/bin/jq -r .Messages[0].MessageAttributes.submissionkey.StringValue`;
-
+  echo DIR >> $LOG_dir/aws_queue.log 2>&1;
   # execute the trigger.py
   /usr/bin/python3 $BART_dir/trigger.py $DIR >> $LOG_dir/aws_queue.log 2>&1;
   
