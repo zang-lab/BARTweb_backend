@@ -24,7 +24,7 @@ RUN pip3 install -r /BARTweb/requirements.txt
 WORKDIR /BARTweb
 
 # give docker permission to write log files
-RUN mkdir -p usercase/log
+#RUN mkdir -p usercase/log
 #RUN touch usercase/log/bartweb_backend.log
 RUN chown -R www-data:www-data log
 RUN chmod -R 775 log
