@@ -43,6 +43,7 @@ def load_queue():
 #         return
 def check_queue(user_key):
     user_path = os.path.join(USERCASE_DIR, user_key)
+    logger.info('Check user path: ' + str(user_path))
     if os.path.exists(user_path):
         logger.info('Check user queue: ' + str(user_key) + ' directory exists.')
         logger.info('Submit job: Begin execute task for this user.')
