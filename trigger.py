@@ -35,11 +35,13 @@ def load_queue():
         return
     return data
 
-def check_queue(user_queue, user_key):
-    # queue containing the users' jobs which are left undone
-    if user_key not in user_queue:
-        logger.error('Fatal error: user_queue.yaml does not have {} in the list..'.format(user_key))
-        return
+# uncomment after check if user is clean is implimented
+# def check_queue(user_queue, user_key):
+#     # queue containing the users' jobs which are left undone
+#     if user_key not in user_queue:
+#         logger.error('Fatal error: user_queue.yaml does not have {} in the list..'.format(user_key))
+#         return
+def check_queue(user_key):
     user_path = os.path.join(USERCASE_DIR, user_key)
     if os.path.exists(user_path):
         logger.info('Check user queue: ' + str(user_key) + ' directory exists.')
@@ -54,8 +56,9 @@ def check_queue(user_queue, user_key):
         # FIFO or check is the job has been retrived with status in user_config
         if 'status' in user_config_data:
             return
-
-        if user_queue[user_key]['status'] == 'Cleaned':
+        # uncomment after check if user is clean is implimented
+        #if user_queue[user_key]['status'] == 'Cleaned':
+        if True:
             callret,commandret = execute_sh(user_config_data)
             if callret == 0:
                 logger.info('Submit job: Job submission succeed!!!')
@@ -86,7 +89,10 @@ if __name__ == '__main__':
     script_name = sys.argv[0]
     user_key = sys.argv[1]
 
-    user_queue = load_queue() 
-    check_queue(user_queue, user_key)    
+    # Right now status yaml file is not written correctly, disable for now
+    # uncomment after check if user is clean is implimented
+    #user_queue = load_queue() 
+    #check_queue(user_queue, user_key)
+    check_queue(user_key)    
     
 
