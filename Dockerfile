@@ -28,7 +28,7 @@ RUN mkdir -p usercase/log
 RUN touch usercase/log/bartweb_backend.log
 RUN chown -R www-data:www-data usercase/log
 RUN chmod -R 775 usercase/log
-RUN export HDF5_USE_FILE_LOCKING='FALSE'
+RUN export HDF5_USE_FILE_LOCKING=FALSE
 
 #ENTRYPOINT ["sh"]
 #CMD ["run.sh"]
