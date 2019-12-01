@@ -65,7 +65,7 @@ def send_email_message(user_data):
 Congratulations! Your BART job is done!
 
 Please get the results through this link: {}
-'''.format('http://bartweb2.uvadcos.io/result?user_key='+user_key)
+'''.format('http://bartweb.org/result?user_key='+user_key)
             title = 'BART result'
             return_flag,return_message = send_email(email,title,message_body)
 
