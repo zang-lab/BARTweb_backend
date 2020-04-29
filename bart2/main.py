@@ -76,7 +76,7 @@ def bart(options):
         sys.stdout.write("Generate cis-regulatory profile...\n")
         sys.stdout.flush()
 
-        sys.stdout.write("Generate parameters for enhancer profile generation...\n")
+        sys.stdout.write("Generate parameters for CRE profile generation...\n")
         enhancer_args = \
                 SimpleNamespace(samplefile=regression_info, \
                                 name=args.ofilename, \
@@ -84,9 +84,9 @@ def bart(options):
         EnhancerIdentifier.main(enhancer_args)
         sys.stdout.flush()
 
-        enhancer_profile = args.ofilename + '_enhancer_prediction_lasso.txt'
+        enhancer_profile = args.ofilename + '_CRE_prediction_lasso.txt'
         if not os.path.exists(enhancer_profile):
-            sys.stderr.write("Error: generating enhancer profile! \n")
+            sys.stderr.write("Error: generating CRE profile! \n")
             sys.exit(1)
 
         # get ranked score UDHS positions from enhancer profile
