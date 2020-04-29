@@ -115,7 +115,7 @@ def if_success(user_path,dataType):
                 count = count+1
             if '_adaptive_lasso_Info.txt' in file: 
                 count = count+1
-            if '_enhancer_prediction_lasso.txt' in file: 
+            if '_prediction_lasso.txt' in file: 
                 count = count+1
         if count == 4:
             done = True
